@@ -1,19 +1,45 @@
 module Validation
     exposing
-        ( Validator
+        ( Field
+        , Validator
+        , Validity (..)
+        , Event (..)
+        , OptionalField
         , ErrorMessage
+        , extractError
+        , field
+        , validate
+        , validity
+        , rawValue
+        , optional
+        , (|:)
+        , (>&&)
         )
 
 {-| TODO: Description and examples
+
+# Definition
+@docs Field, Validator, Validity, Event, OptionalField, ErrorMessage
+
+# Helpers
+@docs extractError, field, validate, validity, rawValue, optional
+
+# Higher-Order Helpers
+@docs (|:), (>&&)
+
 -}
 
 
+{-|
+-}
 type Validity a
     = NotValidated
     | Valid a
     | Invalid String
 
 
+{-|
+-}
 type Event raw
     = OnSubmit
     | OnBlur
@@ -21,41 +47,106 @@ type Event raw
     | OnChange raw
 
 
+{-|
+-}
 type Field raw a
     = Field raw (Validity a)
 
 
+{-|
+-}
 type alias OptionalField raw a =
     Field raw (Maybe a)
 
 
+{-|
+-}
 type alias Validator a b =
     a -> Result String b
 
 
+{-|
+-}
 type alias ErrorMessage =
     String
 
 
+{-|
+-}
 rawValue : Field b a -> b
 rawValue (Field rawValue _) =
     rawValue
 
 
+{-|
+-}
 validity : Field raw a -> Validity a
 validity (Field _ validity) =
     validity
 
 
+{-|
+-}
 field : b -> Field b a
 field value =
     Field value NotValidated
 
 
-setError : String -> Field b a -> Field b a1
-setError err (Field value _) =
-    Field value (Invalid err)
+{-|
+-}
+validate : Event raw -> Validator raw a -> Field raw a -> Field raw a
+validate event validate (Field value validity) =
+    case event of
+        OnSubmit ->
+            validateAlways validate (Field value validity)
 
+        OnBlur ->
+            validateAlways validate (Field value validity)
+
+        OnChange newValue ->
+            validateIfValidated validate (Field newValue validity)
+
+        OnRelatedChange ->
+            validateIfValidated validate (Field value validity)
+
+
+{-| Flip the order of the first two arguments to a function. -}
+(|:) : Validity (a -> b) -> Validity a -> Validity b
+(|:) =
+    flip applyValidity
+
+
+{-|
+-}
+(>&&) : Validator a b -> Validator b c -> Validator a c
+(>&&) f g =
+    f >> Result.andThen g
+
+
+{-|
+-}
+extractError : Field raw a -> Maybe String
+extractError field =
+    case validity field of
+        Invalid err ->
+            Just err
+
+        _ ->
+            Nothing
+
+
+{-|
+-}
+optional : Validator String a -> Validator String (Maybe a)
+optional validate s =
+    if String.isEmpty s then
+        Ok Nothing
+    else
+        validate s |> Result.map Just
+
+
+
+-- Internal function
 
 validateAlways : Validator raw a -> Field raw a -> Field raw a
 validateAlways validate (Field value validity) =
@@ -72,22 +163,6 @@ validateIfValidated validate (Field value validity) =
             _ ->
                 validate value |> toValidity
         )
-
-
-validate : Event raw -> Validator raw a -> Field raw a -> Field raw a
-validate event validate (Field value validity) =
-    case event of
-        OnSubmit ->
-            validateAlways validate (Field value validity)
-
-        OnBlur ->
-            validateAlways validate (Field value validity)
-
-        OnChange newValue ->
-            validateIfValidated validate (Field newValue validity)
-
-        OnRelatedChange ->
-            validateIfValidated validate (Field value validity)
 
 
 toValidity : Result String a -> Validity a
@@ -119,35 +194,3 @@ applyValidity fa ff =
 
                 Valid f ->
                     f a |> Valid
-
-
-(|:) : Validity (a -> b) -> Validity a -> Validity b
-(|:) =
-    flip applyValidity
-
-
-(>&&) : Validator a b -> Validator b c -> Validator a c
-(>&&) f g =
-    f >> Result.andThen g
-
-
-
--- Usage below functions
-
-
-extractError : Field raw a -> Maybe String
-extractError field =
-    case validity field of
-        Invalid err ->
-            Just err
-
-        _ ->
-            Nothing
-
-
-optional : Validator String a -> Validator String (Maybe a)
-optional validate s =
-    if String.isEmpty s then
-        Ok Nothing
-    else
-        validate s |> Result.map Just

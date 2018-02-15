@@ -1,15 +1,13 @@
 {
     "version": "1.0.0",
     "summary": "A Elm validation library",
-    "repository": "https://github.com/iodevs/elm-validate.git",
+    "repository": "https://github.com/user/project.git",
     "license": "BSD3",
     "source-directories": [
         "example",
         "src"
     ],
     "exposed-modules": [
-        "Validation",
-        "Validators"
     ],
     "dependencies": {
         "elm-lang/core": "5.1.1 <= v < 6.0.0",

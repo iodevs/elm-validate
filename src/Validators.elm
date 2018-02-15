@@ -13,15 +13,44 @@ module Validators
         , isInList
         )
 
+{-| TODO: Description and examples
+
+# Numbers validation
+@docs isFloat, isPositiveFloat, isInt, isPositiveInt, isNatural
+
+# Strings validation
+@docs isNotEmpty, isEmail, isUrl
+
+# List validation
+@docs isInList
+
+# Others validation
+@docs isTrue, isEqualTo
+
+-}
+
+import Validation
+    exposing
+        ( Field
+        , Validator
+        , Validity(..)
+        , ErrorMessage
+        , validity
+        , (>&&)
+        )
+
 import Regex exposing (Regex)
-import Validation exposing (ErrorMessage, Validator)
 
 
+{-|
+-}
 isFloat : ErrorMessage -> Validator String Float
 isFloat err =
     String.toFloat >> (Result.mapError (always err))
 
 
+{-|
+-}
 isPositiveFloat : ErrorMessage -> Validator Float Float
 isPositiveFloat err fl =
     if fl >= 0 then
@@ -30,11 +59,15 @@ isPositiveFloat err fl =
         Err err
 
 
+{-|
+-}
 isInt : ErrorMessage -> Validator String Int
 isInt err =
     String.toInt >> (Result.mapError (always err))
 
 
+{-|
+-}
 isPositiveInt : ErrorMessage -> Validator Int Int
 isPositiveInt err i =
     if i >= 0 then
@@ -43,11 +76,15 @@ isPositiveInt err i =
         Err err
 
 
+{-|
+-}
 isNatural : ErrorMessage -> Validator String Int
 isNatural err =
     isInt err >&& isPositiveInt err
 
 
+{-|
+-}
 isTrue : ErrorMessage -> Validator Bool Bool
 isTrue err b =
     if b then
@@ -56,6 +93,8 @@ isTrue err b =
         Err err
 
 
+{-|
+-}
 isEqualTo : Field raw a -> ErrorMessage -> Validator a a
 isEqualTo otherField err a2 =
     case validity otherField of
@@ -69,6 +108,8 @@ isEqualTo otherField err a2 =
             Ok a2
 
 
+{-|
+-}
 isNotEmpty : ErrorMessage -> Validator String String
 isNotEmpty err value =
     if String.isEmpty value then
@@ -77,6 +118,8 @@ isNotEmpty err value =
         Ok value
 
 
+{-|
+-}
 isEmail : ErrorMessage -> Validator String String
 isEmail err value =
     if Regex.contains validEmailPattern value then
@@ -85,6 +128,8 @@ isEmail err value =
         Err err
 
 
+{-|
+-}
 isUrl : ErrorMessage -> Validator String String
 isUrl err value =
     if Regex.contains validUrlPattern value then
@@ -93,10 +138,7 @@ isUrl err value =
         Err err
 
 
-
--- check if the string is included in the given list
-
-
+{-| Check if the string is included in the given list -}
 isInList : a -> List a -> ErrorMessage -> Validator String a
 isInList s list_ err _ =
     if List.member s list_ then
@@ -107,8 +149,7 @@ isInList s list_ err _ =
 
 
 -- Internal
--- stolen from elm-validate
-
+-- copied from elm-validate
 
 validEmailPattern : Regex
 validEmailPattern =
@@ -117,8 +158,7 @@ validEmailPattern =
 
 
 
--- stolen from etaque/elm-simple-form
-
+-- copied from etaque/elm-simple-form
 
 validUrlPattern : Regex
 validUrlPattern =

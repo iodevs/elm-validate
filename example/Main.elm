@@ -340,9 +340,10 @@ validateModel model =
     in
         {model
             | email = email
+            , password = password
+            , confirmPassword = confirmPassword
             , acceptPolicy = acceptPolicy
         }
-
 
 submitIfValid : Model -> (Model, Cmd Msg)
 submitIfValid model =

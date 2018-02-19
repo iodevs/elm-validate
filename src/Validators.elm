@@ -13,7 +13,7 @@ module Validators
         , isInList
         )
 
-{-| TODO: Description and examples
+{-| This library provides a few functions for validating data.
 
 # Numbers validation
 @docs isFloat, isPositiveFloat, isInt, isPositiveInt, isNatural
@@ -42,48 +42,73 @@ import Validation
 import Regex exposing (Regex)
 
 
-{-|
+{-| Return an `Err errorMessage` if the given value isn't float number, otherwise
+return `Ok value`.
+
+    import Validation exposing (Validator, ErrorMessage)
+
+    floatValidation : Validator String Float
+    floatValidation =
+        isFloat "It is not float number!"
+
+    floatValidation "5.39161" -- Ok 5.39161
+    floatValidation "t.39161" -- Err "It is not float number!"
+
 -}
 isFloat : ErrorMessage -> Validator String Float
 isFloat err =
     String.toFloat >> (Result.mapError (always err))
 
 
-{-|
+{-| Return an `Err errorMessage` if the given value isn't positive float number,
+otherwise return `Ok value`. It contains also float validation of value.
 -}
-isPositiveFloat : ErrorMessage -> Validator Float Float
-isPositiveFloat err fl =
-    if fl >= 0 then
-        Ok fl
-    else
-        Err err
+isPositiveFloat : ErrorMessage -> Validator String Float
+isPositiveFloat err =
+    let
+        isPositive err fl =
+            if fl > 0 then
+                Ok fl
+            else
+                Err err
+    in
+        isFloat err >&& isPositive err
 
 
-{-|
+{-| Return an `Err errorMessage` if the given value isn't int number, otherwise
+return `Ok value`.
+
+    import Validation exposing (Validator, ErrorMessage)
+
+    intValidation : Validator String Int
+    intValidation =
+        isInt "It is not int number!"
+
+    intValidation "108" -- Ok 108
+    intValidation "3.14" -- Err "It is not int number!"
+
 -}
 isInt : ErrorMessage -> Validator String Int
 isInt err =
     String.toInt >> (Result.mapError (always err))
 
 
-{-|
+{-| Return an `Err errorMessage` if the given value isn't positive int number,
+otherwise return `Ok value`. It contains also int validation of value.
 -}
-isPositiveInt : ErrorMessage -> Validator Int Int
-isPositiveInt err i =
-    if i >= 0 then
-        Ok i
-    else
-        Err err
+isPositiveInt : ErrorMessage -> Validator String Int
+    let
+        isPositive err =
+            if fl > 0 then
+                Ok fl
+            else
+                Err err
+    in
+        isInt err >&& isPositive err
 
 
-{-|
--}
-isNatural : ErrorMessage -> Validator String Int
-isNatural err =
-    isInt err >&& isPositiveInt err
-
-
-{-|
+{-| Return an `Err errorMessage` if the given boolean is false, otherwise
+return `Ok True`.
 -}
 isTrue : ErrorMessage -> Validator Bool Bool
 isTrue err b =
@@ -93,7 +118,25 @@ isTrue err b =
         Err err
 
 
-{-|
+{-| Validate Field
+
+Return an `Err errorMessage` if the given value of `Field Valid a` isn't same as
+validation argument, otherwise return `Ok validation argument` for others `Validity`
+or for `Valid a` is `Ok value`.
+
+    import Validation exposing (Validator, ErrorMessage, Field)
+
+    pass : Field String String
+    pass =
+        Field "" (Valid "password*")
+
+    confirmPasswordValidation : Validator String String
+    confirmPasswordValidation =
+        isEqualTo pass "The passwords don't match."
+
+    confirmPasswordValidation "password*" -- Ok password*
+    confirmPasswordValidation "pasword*"  -- Err "The passwords don't match."
+
 -}
 isEqualTo : Field raw a -> ErrorMessage -> Validator a a
 isEqualTo otherField err a2 =
@@ -108,7 +151,8 @@ isEqualTo otherField err a2 =
             Ok a2
 
 
-{-|
+{-| Return an `Err errorMessage` if the given string is empty, otherwise
+return `Ok value`.
 -}
 isNotEmpty : ErrorMessage -> Validator String String
 isNotEmpty err value =
@@ -118,7 +162,8 @@ isNotEmpty err value =
         Ok value
 
 
-{-|
+{-| Return an `Err errorMessage` if the given string isn't correct an email address,
+otherwise return `Ok value`.
 -}
 isEmail : ErrorMessage -> Validator String String
 isEmail err value =
@@ -128,7 +173,8 @@ isEmail err value =
         Err err
 
 
-{-|
+{-| Return an `Err errorMessage` if the given string isn't correct an url path,
+otherwise return `Ok value`.
 -}
 isUrl : ErrorMessage -> Validator String String
 isUrl err value =
@@ -138,13 +184,28 @@ isUrl err value =
         Err err
 
 
-{-| Check if the string is included in the given list -}
-isInList : a -> List a -> ErrorMessage -> Validator String a
-isInList s list_ err _ =
-    if List.member s list_ then
-        Ok s
-    else
-        Err err
+{-| Return an `Err errorMessage` if the given value isn't in list, otherwise
+return `Ok value`.
+
+    import Validation exposing (Validator, ErrorMessage)
+
+    elInListValidation : Validator (Int, List Int) Int
+    elInListValidation =
+        isInList "Given value is not in list!"
+
+    elInListValidation (3, [1, 2, 3]) -- Ok 3
+    elInListValidation (5, [1, 2, 3]) -- Err "Given value is not in list!"
+
+-}
+isInList : ErrorMessage -> Validator (a, List a) a
+isInList err tpl =
+    let
+        (el, list_) = tpl
+    in
+        if List.member el list_ then
+            Ok el
+        else
+            Err err
 
 
 

@@ -8,6 +8,7 @@ module Validation
         , ErrorMessage
         , extractError
         , field
+        , preValidatedField
         , validate
         , validity
         , rawValue
@@ -22,7 +23,7 @@ module Validation
 @docs Field, Validator, Validity, Event, OptionalField, ErrorMessage
 
 # Helpers
-@docs extractError, field, validate, validity, rawValue, optional
+@docs extractError, field, preValidatedField, validate, validity, rawValue, optional
 
 # Higher-Order Helpers
 @docs (|:), (>&&)
@@ -90,6 +91,13 @@ validity (Field _ validity) =
 field : b -> Field b a
 field value =
     Field value NotValidated
+
+
+{-|
+-}
+preValidatedField : b -> Field String a
+preValidatedField value =
+    Field (toString value) (Valid value)
 
 
 {-|

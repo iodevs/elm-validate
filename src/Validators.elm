@@ -11,6 +11,7 @@ module Validators
         , isEmail
         , isUrl
         , isInList
+        , isValidField
         )
 
 {-| This library provides a few functions for validating data.
@@ -25,7 +26,7 @@ module Validators
 @docs isInList
 
 # Others validation
-@docs isTrue, isEqualTo
+@docs isTrue, isEqualTo, isValidField
 
 -}
 
@@ -107,7 +108,7 @@ isPositiveInt : ErrorMessage -> Validator String Int
         isInt err >&& isPositive err
 
 
-{-| Return an `Err errorMessage` if the given boolean is false, otherwise
+{-| Return an `Err errorMessage` if the given boolean value is false, otherwise
 return `Ok True`.
 -}
 isTrue : ErrorMessage -> Validator Bool Bool
@@ -206,6 +207,28 @@ isInList err tpl =
             Ok el
         else
             Err err
+
+
+{-| Return false if `Field` hasn't validity `Valid a`, otherwise
+return true.
+
+    import Validation exposing (Field, field, preValidatedField)
+
+    intNotvalidValue = field "50"        -- Field "50" NotValidated
+    intValidValue = preValidatedField 50 -- Field "50" (Valid 50)
+
+    isValidField intNotvalidValue -- False
+    isValidField intValidValue    -- True
+
+-}
+isValidField : Field raw a -> Bool
+isValidField field =
+    case validity field of
+        Valid _ ->
+            True
+
+        _ ->
+            False
 
 
 

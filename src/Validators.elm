@@ -4,7 +4,6 @@ module Validators
         , isPositiveFloat
         , isInt
         , isPositiveInt
-        , isNatural
         , isTrue
         , isEqualTo
         , isNotEmpty
@@ -16,16 +15,24 @@ module Validators
 
 {-| This library provides a few functions for validating data.
 
+
 # Numbers validation
-@docs isFloat, isPositiveFloat, isInt, isPositiveInt, isNatural
+
+@docs isFloat, isPositiveFloat, isInt, isPositiveInt
+
 
 # Strings validation
+
 @docs isNotEmpty, isEmail, isUrl
 
+
 # List validation
+
 @docs isInList
 
+
 # Others validation
+
 @docs isTrue, isEqualTo, isValidField
 
 -}
@@ -39,7 +46,6 @@ import Validation
         , validity
         , (>&&)
         )
-
 import Regex exposing (Regex)
 
 
@@ -98,8 +104,9 @@ isInt err =
 otherwise return `Ok value`. It contains also int validation of value.
 -}
 isPositiveInt : ErrorMessage -> Validator String Int
+isPositiveInt err =
     let
-        isPositive err =
+        isPositive err fl =
             if fl > 0 then
                 Ok fl
             else
@@ -198,10 +205,11 @@ return `Ok value`.
     elInListValidation (5, [1, 2, 3]) -- Err "Given value is not in list!"
 
 -}
-isInList : ErrorMessage -> Validator (a, List a) a
+isInList : ErrorMessage -> Validator ( a, List a ) a
 isInList err tpl =
     let
-        (el, list_) = tpl
+        ( el, list_ ) =
+            tpl
     in
         if List.member el list_ then
             Ok el
@@ -235,6 +243,7 @@ isValidField field =
 -- Internal
 -- copied from elm-validate
 
+
 validEmailPattern : Regex
 validEmailPattern =
     Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
@@ -243,6 +252,7 @@ validEmailPattern =
 
 
 -- copied from etaque/elm-simple-form
+
 
 validUrlPattern : Regex
 validUrlPattern =

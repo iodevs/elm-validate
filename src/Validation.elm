@@ -2,8 +2,8 @@ module Validation
     exposing
         ( Field
         , Validator
-        , Validity (..)
-        , Event (..)
+        , Validity(..)
+        , Event(..)
         , SubmissionStatus(..)
         , OptionalField
         , ErrorMessage
@@ -20,32 +20,41 @@ module Validation
 
 {-| This library helps with validation of input forms.
 
+
 # Definition
+
 @docs Field, Validity, Event, SubmissionStatus, OptionalField, Validator, ErrorMessage
 
+
 # Helpers
+
 @docs extractError, field, preValidatedField, validate, validity, rawValue, optional
 
+
 # Higher-Order Helpers
+
 @docs (|:), (>&&)
 
 -}
 
+
 {-| Define data type.
 For example:
 
-    dist = Field 40.5 NotValidated
+    dist =
+        Field 40.5 NotValidated
 
 That means `dist` has value 40.5 which hasn't validated yet.
+
 -}
 type Field raw a
     = Field raw (Validity a)
 
 
 {-| This type defines three state of Field:
-    * `NotValidated` values e.g. in input from, which have not validated yet.
-    * `Valid a` values that they are correct.
-    * `Invalid String` and state for incorrect input values.
+* `NotValidated` values e.g. in input from, which have not validated yet.
+* `Valid a` values that they are correct.
+* `Invalid String` and state for incorrect input values.
 -}
 type Validity a
     = NotValidated
@@ -54,12 +63,12 @@ type Validity a
 
 
 {-| Event describe state of input form:
-    * `OnSubmit` validates model data before submitting to server,
-        see `validateModel` in `example`.
-    * `OnBlur` validates input form when user leaves an input field.
-    * `OnRelatedChange` validates input form which is tied with another form.
-        For example: password and confirm form.
-    * `OnChange raw` validates input form when user changes value in input field,
+* `OnSubmit` validates model data before submitting to server,
+see `validateModel` in `example`.
+* `OnBlur` validates input form when user leaves an input field.
+* `OnRelatedChange` validates input form which is tied with another form.
+For example: password and confirm form.
+* `OnChange raw` validates input form when user changes value in input field,
 -}
 type Event raw
     = OnSubmit
@@ -69,12 +78,13 @@ type Event raw
 
 
 {-| Here `SubmissionStatus` define states for submit data to server:
-    * `NotSubmitted` means that data have not sent yet.
-    * `InProcess` for data being processed.
-    * `Succeeded` if data have been successfully received.
-    * `Failed` or vice versa, data have not been successfully received.
+* `NotSubmitted` means that data have not sent yet.
+* `InProcess` for data being processed.
+* `Succeeded` if data have been successfully received.
+* `Failed` or vice versa, data have not been successfully received.
 
     This also may be used to inform user on screen, see `renderStatus`in `example`.
+
 -}
 type SubmissionStatus
     = NotSubmitted
@@ -143,7 +153,10 @@ validity (Field _ validity) =
 
     intValue : Field String String
     intValue =
-        field "50"      -- Field "50" NotValidated
+        field "50"
+
+
+    -- Field "50" NotValidated
 
 -}
 field : b -> Field b a
@@ -157,10 +170,13 @@ field value =
 
     intValue : Field String Int
     intValue =
-        preValidatedField "50"      -- Field "50" (Valid 50)
+        preValidatedField "50"
+
+
+    -- Field "50" (Valid 50)
 
 -}
-preValidatedField : b -> Field String a
+preValidatedField : val -> Field String val
 preValidatedField value =
     Field (toString value) (Valid value)
 
@@ -257,6 +273,7 @@ optional validate s =
 
 
 -- Internal function
+
 
 validateAlways : Validator raw a -> Field raw a -> Field raw a
 validateAlways validate (Field value validity) =

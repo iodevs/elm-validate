@@ -42,13 +42,6 @@ initModel =
     }
 
 
-type SubmissionStatus
-    = NotSubmitted
-    | InProcess
-    | Succeeded
-    | Failed
-
-
 type Msg
     = InputEmail String
     | BlurEmail
@@ -184,7 +177,7 @@ renderStatus status =
             div [] [ text "Your request is being sent." ]
 
         Succeeded ->
-            div [] [ text "Your request has been recieved." ]
+            div [] [ text "Your request has been received." ]
 
         Failed ->
             div [ class "msg--error" ]

@@ -51,10 +51,12 @@ field creator acs (Transformer model form) =
                     Transformer (Err "Form is invalid!!!") form
 
                 Valid val ->
-                    val
-                        |> creator
-                        |> Result.map mdl
-                        |> \r -> Transformer r form
+                    Transformer
+                        (val
+                            |> creator
+                            |> Result.map mdl
+                        )
+                        form
 
         Err msg ->
             Transformer (Err msg) form

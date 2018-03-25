@@ -36,11 +36,11 @@ type alias Accessor form raw a =
 
 {-| -}
 field :
-    (form -> Field raw a)
-    -> (a -> Result String b)
+    (a -> Result String b)
+    -> (form -> Field raw a)
     -> Transformer (b -> c) form
     -> Transformer c form
-field acs creator (Transformer model form) =
+field creator acs (Transformer model form) =
     case model of
         Ok mdl ->
             case validity (acs form) of

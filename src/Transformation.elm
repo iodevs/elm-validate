@@ -1,4 +1,8 @@
-module Transformation exposing (field, toModel)
+module Transformation
+    exposing
+        ( field
+        , toModel
+        )
 
 {-| This module help transform validated forms to models.
 
@@ -17,35 +21,50 @@ import Validation
         )
 
 
-type alias Container data form =
-    ( Result String data, form )
+{-| -}
+type Transformer data form
+    = Transformer (Result String data) form
+
+
+type alias Creator a b =
+    a -> Result String b
+
+
+type alias Accessor form raw a =
+    form -> Field raw a
 
 
 {-| -}
-field : (form -> Field raw a) -> Container (a -> b) form -> Container b form
-field acs ( model, form ) =
+field :
+    (form -> Field raw a)
+    -> (a -> Result String b)
+    -> Transformer (b -> c) form
+    -> Transformer c form
+field acs creator (Transformer model form) =
     case model of
         Ok mdl ->
             case validity (acs form) of
                 NotValidated ->
-                    ( Err "Form is invalid!!!", form )
+                    Transformer (Err "Form is invalid!!!") form
 
                 Invalid _ ->
-                    ( Err "Form is invalid!!!", form )
+                    Transformer (Err "Form is invalid!!!") form
 
                 Valid val ->
-                    ( Ok (mdl val), form )
+                    val
+                        |> creator
+                        |> Result.map mdl
+                        |> \r -> Transformer r form
 
         Err msg ->
-            ( Err msg, form )
+            Transformer (Err msg) form
 
 
 {-| -}
-toModel : model -> (Container model form -> Container data form) -> form -> Result String data
+toModel : model -> (Transformer model form -> Transformer data form) -> form -> Result String data
 toModel model f form =
-    case f ( Ok model, form ) of
-        ( Ok model, _ ) ->
-            Ok model
-
-        ( Err msg, _ ) ->
-            Err msg
+    let
+        (Transformer result _) =
+            f (Transformer (Ok model) form)
+    in
+        result

@@ -1,6 +1,6 @@
 module Transformation
     exposing
-        ( field
+        ( withField
         , withoutField
         , toModel
         )
@@ -10,7 +10,7 @@ module Transformation
 
 # Helpers
 
-@docs field, withoutField, toModel
+@docs withField, withoutField, toModel
 
 -}
 
@@ -67,20 +67,20 @@ if yes, then returns this variable with her value. Otherwise returns an `Err err
     model =
         toModel
             Model
-            ( field condPosInt .a
-            >> field condFloatRange .b
+            ( withField condPosInt .a
+            >> withField condFloatRange .b
             )
             form
 
     -- Ok { a = 1, b = 0.3 }
 
 -}
-field :
+withField :
     (a -> Result String b)
     -> (form -> Field raw a)
     -> Transformer (b -> c) form
     -> Transformer c form
-field creator acs (Transformer model form) =
+withField creator acs (Transformer model form) =
     case model of
         Ok mdl ->
             case validity (acs form) of
@@ -116,7 +116,7 @@ field creator acs (Transformer model form) =
     model : Result String Model
     model =
         let
-            fieldOk = field Ok
+            fieldOk = withField Ok
             valueOk = withoutField Ok
         in
             toModel

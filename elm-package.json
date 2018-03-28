@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "summary": "A Elm validation library",
     "repository": "https://github.com/iodevs/elm-validate.git",
     "license": "BSD3",

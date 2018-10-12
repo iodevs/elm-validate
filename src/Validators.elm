@@ -1,17 +1,9 @@
-module Validators
-    exposing
-        ( isFloat
-        , isPositiveFloat
-        , isInt
-        , isPositiveInt
-        , isTrue
-        , isEqualTo
-        , isNotEmpty
-        , isEmail
-        , isUrl
-        , isInList
-        , isValidField
-        )
+module Validators exposing
+    ( isFloat, isPositiveFloat, isInt, isPositiveInt
+    , isNotEmpty, isEmail, isUrl
+    , isInList
+    , isTrue, isEqualTo, isValidField
+    )
 
 {-| This library provides a few functions for validating data.
 
@@ -37,16 +29,16 @@ module Validators
 
 -}
 
+import Regex
 import Validation
     exposing
-        ( Field
+        ( ErrorMessage
+        , Field
         , Validator
         , Validity(..)
-        , ErrorMessage
+        , composite
         , validity
-        , (>&&)
         )
-import Regex exposing (Regex)
 
 
 {-| Return an `Err errorMessage` if the given value isn't float number, otherwise
@@ -64,7 +56,7 @@ return `Ok value`.
 -}
 isFloat : ErrorMessage -> Validator String Float
 isFloat err =
-    String.toFloat >> (Result.mapError (always err))
+    String.toFloat >> Result.fromMaybe err >> Result.mapError (always err)
 
 
 {-| Return an `Err errorMessage` if the given value isn't positive float number,
@@ -73,13 +65,14 @@ otherwise return `Ok value`. It contains also float validation of value.
 isPositiveFloat : ErrorMessage -> Validator String Float
 isPositiveFloat err =
     let
-        isPositive err fl =
+        isPositive e fl =
             if fl > 0 then
                 Ok fl
+
             else
-                Err err
+                Err e
     in
-        isFloat err >&& isPositive err
+    composite (isFloat err) (isPositive err)
 
 
 {-| Return an `Err errorMessage` if the given value isn't int number, otherwise
@@ -97,7 +90,7 @@ return `Ok value`.
 -}
 isInt : ErrorMessage -> Validator String Int
 isInt err =
-    String.toInt >> (Result.mapError (always err))
+    String.toInt >> Result.fromMaybe err >> Result.mapError (always err)
 
 
 {-| Return an `Err errorMessage` if the given value isn't positive int number,
@@ -106,13 +99,14 @@ otherwise return `Ok value`. It contains also int validation of value.
 isPositiveInt : ErrorMessage -> Validator String Int
 isPositiveInt err =
     let
-        isPositive err fl =
-            if fl > 0 then
-                Ok fl
+        isPositive e i =
+            if i > 0 then
+                Ok i
+
             else
-                Err err
+                Err e
     in
-        isInt err >&& isPositive err
+    composite (isInt err) (isPositive err)
 
 
 {-| Return an `Err errorMessage` if the given boolean value is false, otherwise
@@ -122,6 +116,7 @@ isTrue : ErrorMessage -> Validator Bool Bool
 isTrue err b =
     if b then
         Ok b
+
     else
         Err err
 
@@ -152,6 +147,7 @@ isEqualTo otherField err a2 =
         Valid a1 ->
             if a1 == a2 then
                 Ok a2
+
             else
                 Err err
 
@@ -166,6 +162,7 @@ isNotEmpty : ErrorMessage -> Validator String String
 isNotEmpty err value =
     if String.isEmpty value then
         Err err
+
     else
         Ok value
 
@@ -177,6 +174,7 @@ isEmail : ErrorMessage -> Validator String String
 isEmail err value =
     if Regex.contains validEmailPattern value then
         Ok value
+
     else
         Err err
 
@@ -188,6 +186,7 @@ isUrl : ErrorMessage -> Validator String String
 isUrl err value =
     if Regex.contains validUrlPattern value then
         Ok value
+
     else
         Err err
 
@@ -211,10 +210,11 @@ isInList err tpl =
         ( el, list_ ) =
             tpl
     in
-        if List.member el list_ then
-            Ok el
-        else
-            Err err
+    if List.member el list_ then
+        Ok el
+
+    else
+        Err err
 
 
 {-| Return false if `Field` hasn't validity `Valid a`, otherwise
@@ -222,16 +222,16 @@ return true.
 
     import Validation exposing (Field, field, preValidatedField)
 
-    intNotvalidValue = field "50"        -- Field "50" NotValidated
+    intNotValidValue = field "50"        -- Field "50" NotValidated
     intValidValue = preValidatedField 50 -- Field "50" (Valid 50)
 
-    isValidField intNotvalidValue -- False
+    isValidField intNotValidValue -- False
     isValidField intValidValue    -- True
 
 -}
 isValidField : Field raw a -> Bool
-isValidField field =
-    case validity field of
+isValidField isValidF =
+    case validity isValidF of
         Valid _ ->
             True
 
@@ -244,17 +244,19 @@ isValidField field =
 -- copied from elm-validate
 
 
-validEmailPattern : Regex
+validEmailPattern : Regex.Regex
 validEmailPattern =
-    Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-        |> Regex.caseInsensitive
+    "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+        |> Regex.fromString
+        |> Maybe.withDefault Regex.never
 
 
 
 -- copied from etaque/elm-simple-form
 
 
-validUrlPattern : Regex
+validUrlPattern : Regex.Regex
 validUrlPattern =
-    Regex.regex "^(https?://)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\w \\.-]*)*/?$"
-        |> Regex.caseInsensitive
+    "^(https?://)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\w \\.-]*)*/?$"
+        |> Regex.fromString
+        |> Maybe.withDefault Regex.never

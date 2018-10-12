@@ -1,22 +1,8 @@
-module Validation
-    exposing
-        ( Field
-        , Validator
-        , Validity(..)
-        , Event(..)
-        , SubmissionStatus(..)
-        , OptionalField
-        , ErrorMessage
-        , extractError
-        , field
-        , preValidatedField
-        , validate
-        , validity
-        , rawValue
-        , optional
-        , (|:)
-        , (>&&)
-        )
+module Validation exposing
+    ( Field, Validity(..), Event(..), SubmissionStatus(..), OptionalField, Validator, ErrorMessage
+    , extractError, field, preValidatedField, validate, validity, rawValue, optional
+    , applyValidity, composite
+    )
 
 {-| This library helps with validation of input forms.
 
@@ -33,7 +19,7 @@ module Validation
 
 # Higher-Order Helpers
 
-@docs (|:), (>&&)
+@docs applyValidity, composite
 
 -}
 
@@ -52,9 +38,11 @@ type Field raw a
 
 
 {-| This type defines three state of Field:
-* `NotValidated` values e.g. in input from, which have not validated yet.
-* `Valid a` values that they are correct.
-* `Invalid String` and state for incorrect input values.
+
+  - `NotValidated` values e.g. in input from, which have not validated yet.
+  - `Valid a` values that they are correct.
+  - `Invalid String` and state for incorrect input values.
+
 -}
 type Validity a
     = NotValidated
@@ -63,12 +51,14 @@ type Validity a
 
 
 {-| Event describe state of input form:
-* `OnSubmit` validates model data before submitting to server,
-see `validateModel` in `example`.
-* `OnBlur` validates input form when user leaves an input field.
-* `OnRelatedChange` validates input form which is tied with another form.
-For example: password and confirm form.
-* `OnChange raw` validates input form when user changes value in input field,
+
+  - `OnSubmit` validates model data before submitting to server,
+    see `validateModel` in `example`.
+  - `OnBlur` validates input form when user leaves an input field.
+  - `OnRelatedChange` validates input form which is tied with another form.
+    For example: password and confirm form.
+  - `OnChange raw` validates input form when user changes value in input field,
+
 -}
 type Event raw
     = OnSubmit
@@ -78,10 +68,14 @@ type Event raw
 
 
 {-| Here `SubmissionStatus` define states for submit data to server:
-* `NotSubmitted` means that data have not sent yet.
-* `InProcess` for data being processed.
-* `Succeeded` if data have been successfully received.
-* `Failed` or vice versa, data have not been successfully received.
+
+  - `NotSubmitted` means that data have not sent yet.
+
+  - `InProcess` for data being processed.
+
+  - `Succeeded` if data have been successfully received.
+
+  - `Failed` or vice versa, data have not been successfully received.
 
     This also may be used to inform user on screen, see `renderStatus`in `example`.
 
@@ -127,8 +121,8 @@ type alias ErrorMessage =
 
 -}
 rawValue : Field b a -> b
-rawValue (Field rawValue _) =
-    rawValue
+rawValue (Field rawVal _) =
+    rawVal
 
 
 {-| Get validity from Field.
@@ -143,8 +137,8 @@ rawValue (Field rawValue _) =
 
 -}
 validity : Field raw a -> Validity a
-validity (Field _ validity) =
-    validity
+validity (Field _ validita) =
+    validita
 
 
 {-| Default setting of Field with `NotValidated` validity.
@@ -165,60 +159,79 @@ field value =
 
 
 {-| Default setting of Field with `Valid a` validity.
+For `Field String String` use an identity function.
 
     import Validation exposing (Field, field)
 
     intValue : Field String Int
     intValue =
-        preValidatedField "50"
+        preValidatedField String.fromInt 50
 
 
     -- Field "50" (Valid 50)
 
 -}
-preValidatedField : val -> Field String val
-preValidatedField value =
-    Field (toString value) (Valid value)
+preValidatedField : (val -> String) -> val -> Field String val
+preValidatedField fn value =
+    Field (fn value) (Valid value)
 
 
 {-| Run validation on Field with `Event`.
 -}
 validate : Event raw -> Validator raw a -> Field raw a -> Field raw a
-validate event validate (Field value validity) =
+validate event letValidate (Field value validita) =
     case event of
         OnSubmit ->
-            validateAlways validate (Field value validity)
+            validateAlways letValidate (Field value validita)
 
         OnBlur ->
-            validateAlways validate (Field value validity)
+            validateAlways letValidate (Field value validita)
 
         OnChange newValue ->
-            validateIfValidated validate (Field newValue validity)
+            validateIfValidated letValidate (Field newValue validita)
 
         OnRelatedChange ->
-            validateIfValidated validate (Field value validity)
+            validateIfValidated letValidate (Field value validita)
 
 
 {-| Applying function to particular validation. For instance, see `submitIfValid` and
 `submit` function in `example`.
 -}
-(|:) : Validity (a -> b) -> Validity a -> Validity b
-(|:) =
-    flip applyValidity
+applyValidity : Validity a -> Validity (a -> b) -> Validity b
+applyValidity fa ff =
+    case fa of
+        NotValidated ->
+            NotValidated
+
+        Invalid err ->
+            Invalid err
+
+        Valid a ->
+            case ff of
+                NotValidated ->
+                    NotValidated
+
+                Invalid err ->
+                    Invalid err
+
+                Valid f ->
+                    f a |> Valid
 
 
 {-| Composition of two Validators.
 
-    import Validators exposing (isNotEmpty, isEmail)
+    import Validators exposing (isEmail, isNotEmpty)
 
     emailValidation : Validator String String
     emailValidation =
         isNotEmpty "An email is required."
-            >&& isEmail "Please ensure this is a valid email."
+            and
+            isEmail
+            "Please ensure this is a valid email."
 
 -}
-(>&&) : Validator a b -> Validator b c -> Validator a c
-(>&&) f g =
+composite : Validator a b -> Validator b c -> Validator a c
+composite f g =
     f >> Result.andThen g
 
 
@@ -237,8 +250,8 @@ validate event validate (Field value validity) =
 
 -}
 extractError : Field raw a -> Maybe String
-extractError field =
-    case validity field of
+extractError fieldExtErr =
+    case validity fieldExtErr of
         Invalid err ->
             Just err
 
@@ -264,11 +277,12 @@ extractError field =
 
 -}
 optional : Validator String a -> Validator String (Maybe a)
-optional validate s =
+optional letValidate s =
     if String.isEmpty s then
         Ok Nothing
+
     else
-        validate s |> Result.map Just
+        letValidate s |> Result.map Just
 
 
 
@@ -276,19 +290,19 @@ optional validate s =
 
 
 validateAlways : Validator raw a -> Field raw a -> Field raw a
-validateAlways validate (Field value validity) =
-    Field value (validate value |> toValidity)
+validateAlways letValidate (Field value _) =
+    Field value (letValidate value |> toValidity)
 
 
 validateIfValidated : Validator raw a -> Field raw a -> Field raw a
-validateIfValidated validate (Field value validity) =
+validateIfValidated letValidate (Field value validita) =
     Field value
-        (case validity of
+        (case validita of
             NotValidated ->
                 NotValidated
 
             _ ->
-                validate value |> toValidity
+                letValidate value |> toValidity
         )
 
 
@@ -300,24 +314,3 @@ toValidity result =
 
         Err err ->
             Invalid err
-
-
-applyValidity : Validity a -> Validity (a -> b) -> Validity b
-applyValidity fa ff =
-    case fa of
-        NotValidated ->
-            NotValidated
-
-        Invalid err ->
-            Invalid err
-
-        Valid a ->
-            case ff of
-                NotValidated ->
-                    NotValidated
-
-                Invalid err ->
-                    Invalid err
-
-                Valid f ->
-                    f a |> Valid

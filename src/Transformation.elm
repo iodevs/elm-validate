@@ -1,9 +1,4 @@
-module Transformation
-    exposing
-        ( withField
-        , withoutField
-        , toModel
-        )
+module Transformation exposing (withField, withoutField, toModel)
 
 {-| This module helps to transform validated forms to models.
 
@@ -39,20 +34,28 @@ type alias Accessor form raw a =
 {-| This function is used to check if the given variable in the form has correct validity and
 if yes, then returns this variable with her value. Otherwise returns an `Err errorMessage`.
 
-    import Validation exposing (preValidatedField, Field)
+    import Validation exposing (Field, preValidatedField)
 
-    type A = A Int
-    type B = B Float
+    type A
+        = A Int
 
-    type alias Model = { a : A, b : B}
-    type alias Form = { a : Field String Int, b : Field String Float}
+    type B
+        = B Float
 
-    form = Form (preValidatedField 1) (preValidatedField 0.3)
+    type alias Model =
+        { a : A, b : B }
+
+    type alias Form =
+        { a : Field String Int, b : Field String Float }
+
+    form =
+        Form (preValidatedField String.fromInt 1) (preValidatedField String.fromFloat 0.3)
 
     condPosInt : Int -> Result String A
     condPosInt val =
         if val > 0 then
             Ok (A val)
+
         else
             Err "Value must be positive number!!!"
 
@@ -60,6 +63,7 @@ if yes, then returns this variable with her value. Otherwise returns an `Err err
     condFloatRange val =
         if val < 10 && val > 0 then
             Ok (B val)
+
         else
             Err "Value isn't in range!!!"
 
@@ -67,10 +71,11 @@ if yes, then returns this variable with her value. Otherwise returns an `Err err
     model =
         toModel
             Model
-            ( withField condPosInt .a
-            >> withField condFloatRange .b
+            (withField condPosInt .a
+                >> withField condFloatRange .b
             )
             form
+
 
     -- Ok { a = 1, b = 0.3 }
 
@@ -104,28 +109,41 @@ withField creator acs (Transformer model form) =
 
 {-| This function is similar to function above and is used for non-field type of variables.
 
-    import Validation exposing (preValidatedField, Field)
+    import Validation exposing (Field, preValidatedField)
 
-    type Planet = Venus | Earth | Mars
-    type alias Model = { planet : Planet, a: Int, b: Float}
-    type alias Form = { planet : Planet, a : Field String Int, b : Field String Float}
+    type Planet
+        = Venus
+        | Earth
+        | Mars
 
-    form = Form Earth (preValidatedField 1) (preValidatedField 0.3)
-    --form = Form Mars (preValidatedField 1) (Validation.field "40.5")
+    type alias Model =
+        { planet : Planet, a : Int, b : Float }
 
+    type alias Form =
+        { planet : Planet, a : Field String Int, b : Field String Float }
+
+    form =
+        Form Earth (preValidatedField String.fromInt 1) (preValidatedField String.fromFloat 0.3)
+
+
+    --form = Form Mars (preValidatedField String.fromInt 1) (Validation.field "40.5")
     model : Result String Model
     model =
         let
-            fieldOk = withField Ok
-            valueOk = withoutField Ok
+            fieldOk =
+                withField Ok
+
+            valueOk =
+                withoutField Ok
         in
-            toModel
-                Model
-                ( valueOk .planet
+        toModel
+            Model
+            (valueOk .planet
                 >> fieldOk .a
                 >> fieldOk .b
-                )
-                form
+            )
+            form
+
 
     -- Ok { planet = Earth, a = 1, b = 0.3 }
     -- for form with Mars we get:
@@ -142,7 +160,7 @@ withoutField creator acs (Transformer model form) =
     case model of
         Ok mdl ->
             Transformer
-                ((acs form)
+                (acs form
                     |> creator
                     |> Result.map mdl
                 )
@@ -162,4 +180,4 @@ toModel model f form =
         (Transformer result _) =
             f (Transformer (Ok model) form)
     in
-        result
+    result

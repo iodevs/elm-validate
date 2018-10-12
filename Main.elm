@@ -1,22 +1,20 @@
-module Main exposing (..)
+module Main exposing (Model, Msg(..), applyValidity, body, confirmPasswordValidation, emailValidation, errorLabel, footer, header, initModel, main, modelForm, passwordValidation, renderStatus, submit, submitIfValid, update, validateModel, view)
 
-
+import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onCheck, onBlur, onClick, onInput, onSubmit)
-
+import Html.Events exposing (onBlur, onCheck, onClick, onInput, onSubmit)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Validation exposing (..)
+import Validators exposing (..)
 
-import Validation exposing(..)
-import Validators exposing(..)
 
-
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    program
-        { init = ( initModel, Cmd.none )
+    Browser.element
+        { init = always ( initModel, Cmd.none )
         , view = view
         , update = update
         , subscriptions = \model -> Sub.none
@@ -57,22 +55,25 @@ type Msg
 
 -- Update
 
-update : Msg -> Model -> (Model, Cmd Msg)
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         InputEmail e ->
-            ({model
-                | email = model.email
-                    |> validate (OnChange e) emailValidation
-             }
+            ( { model
+                | email =
+                    model.email
+                        |> validate (OnChange e) emailValidation
+              }
             , Cmd.none
             )
 
         BlurEmail ->
-            ({model
-                | email = model.email
-                    |> validate OnBlur emailValidation
-             }
+            ( { model
+                | email =
+                    model.email
+                        |> validate OnBlur emailValidation
+              }
             , Cmd.none
             )
 
@@ -82,43 +83,46 @@ update msg model =
                     model.password
                         |> validate (OnChange p) passwordValidation
             in
-
-            ({model
+            ( { model
                 | password = password
-                , confirmPassword = model.confirmPassword
-                    |> validate OnRelatedChange (confirmPasswordValidation password)
-             }
+                , confirmPassword =
+                    model.confirmPassword
+                        |> validate OnRelatedChange (confirmPasswordValidation password)
+              }
             , Cmd.none
             )
 
         BlurPassword ->
-            ({model
-                | password = model.password
-                    |> validate OnBlur passwordValidation
-             }
+            ( { model
+                | password =
+                    model.password
+                        |> validate OnBlur passwordValidation
+              }
             , Cmd.none
             )
 
         InputConfirmPassword p ->
-            ({model
-                | confirmPassword = model.confirmPassword
-                    |> validate (OnChange p) (confirmPasswordValidation model.password)
-             }
+            ( { model
+                | confirmPassword =
+                    model.confirmPassword
+                        |> validate (OnChange p) (confirmPasswordValidation model.password)
+              }
             , Cmd.none
             )
 
         BlurConfirmPassword ->
-            ({model
-                | confirmPassword = model.confirmPassword
-                    |> validate OnBlur (confirmPasswordValidation model.password)
-             }
+            ( { model
+                | confirmPassword =
+                    model.confirmPassword
+                        |> validate OnBlur (confirmPasswordValidation model.password)
+              }
             , Cmd.none
             )
 
         CheckAcceptPolicy a ->
-            ({model
+            ( { model
                 | acceptPolicy = field a
-             }
+              }
             , Cmd.none
             )
 
@@ -126,21 +130,23 @@ update msg model =
             model |> validateModel |> submitIfValid
 
         SubmitResponse (Ok ()) ->
-            ({initModel | status = Succeeded
-             }
+            ( { initModel
+                | status = Succeeded
+              }
             , Cmd.none
             )
 
         SubmitResponse (Err _) ->
-            ({model
+            ( { model
                 | status = Failed
-             }
+              }
             , Cmd.none
             )
 
 
 
 -- View
+
 
 view : Model -> Html Msg
 view model =
@@ -227,7 +233,7 @@ body model =
             [ input
                 [ type_ "checkbox"
                 , id "terms"
-                , value (model.acceptPolicy |> rawValue |> toString )
+                , value (model.acceptPolicy |> rawValue |> Debug.toString)
                 , onCheck CheckAcceptPolicy
                 ]
                 []
@@ -240,9 +246,9 @@ body model =
 
 
 errorLabel : Field raw a -> Html Msg
-errorLabel field =
+errorLabel fieldErrLbl =
     div [ class "msg msg--error" ]
-        [ field
+        [ fieldErrLbl
             |> extractError
             |> Maybe.withDefault ""
             |> text
@@ -261,34 +267,34 @@ footer model =
         ]
 
 
-modelForm : Model-> List (Html msg)
+modelForm : Model -> List (Html msg)
 modelForm model =
     [ div [ class "header" ]
-            [ h1 [] [ text "Model state" ] ]
+        [ h1 [] [ text "Model state" ] ]
     , div []
         [ text "{ email ="
         , p [ class "model__el" ]
-            [ model.email |> toString |> text ]
+            [ model.email |> rawValue |> text ]
         ]
     , div []
         [ text ", password  ="
         , p [ class "model__el" ]
-            [ model.password  |> toString |> text ]
+            [ model.password |> rawValue |> text ]
         ]
     , div []
         [ text ", confirmPassword  ="
         , p [ class "model__el" ]
-            [ model.confirmPassword  |> toString |> text ]
+            [ model.confirmPassword |> rawValue |> text ]
         ]
     , div []
         [ text ", acceptPolicy  ="
         , p [ class "model__el" ]
-            [ model.acceptPolicy  |> toString |> text ]
+            [ model.acceptPolicy |> Debug.toString |> text ]
         ]
     , div []
         [ text ", status  ="
         , div [ class "model__el" ]
-            [ model.status |> toString |> text ]
+            [ model.status |> Debug.toString |> text ]
         , text "}"
         ]
     ]
@@ -297,10 +303,10 @@ modelForm model =
 
 -- Validation
 
+
 emailValidation : Validator String String
 emailValidation =
-    isNotEmpty "An email is required."
-        >&& isEmail "Please ensure this is a valid email."
+    composite (isNotEmpty "An email is required.") (isEmail "Please ensure this is a valid email.")
 
 
 passwordValidation : Validator String String
@@ -310,8 +316,7 @@ passwordValidation =
 
 confirmPasswordValidation : Field raw String -> Validator String String
 confirmPasswordValidation password =
-    isNotEmpty "Please enter a password."
-        >&& isEqualTo password "The passwords don't match."
+    composite (isNotEmpty "Please enter a password.") (isEqualTo password "The passwords don't match.")
 
 
 validateModel : Model -> Model
@@ -331,45 +336,48 @@ validateModel model =
             model.acceptPolicy
                 |> validate OnSubmit (isTrue "You must accept the policy.")
     in
-        {model
-            | email = email
-            , password = password
-            , confirmPassword = confirmPassword
-            , acceptPolicy = acceptPolicy
-        }
+    { model
+        | email = email
+        , password = password
+        , confirmPassword = confirmPassword
+        , acceptPolicy = acceptPolicy
+    }
 
-submitIfValid : Model -> (Model, Cmd Msg)
+
+submitIfValid : Model -> ( Model, Cmd Msg )
 submitIfValid model =
     let
         submissionResult =
             Valid submit
-                |: (validity model.email)
-                |: (validity model.password)
-                |: (validity model.confirmPassword)
-                |: (validity model.acceptPolicy)
+                |> applyValidity (validity model.email)
+                |> applyValidity (validity model.password)
+                |> applyValidity (validity model.confirmPassword)
+                |> applyValidity (validity model.acceptPolicy)
     in
-        case submissionResult of
-            Valid cmd ->
-                ({model | status = InProcess}
-                , cmd
-                )
+    case submissionResult of
+        Valid cmd ->
+            ( { model | status = InProcess }
+            , cmd
+            )
 
-            _ ->
-                (model, Cmd.none)
+        _ ->
+            ( model, Cmd.none )
 
 
 
 -- Send request
 
+
 submit : String -> String -> String -> Bool -> Cmd Msg
 submit email password _ _ =
     let
-        url = "http://localhost:8080/api/register"
+        url =
+            "http://localhost:8080/api/register"
 
         json =
             Encode.object
-                [ ("email", Encode.string email)
-                , ("password", Encode.string password)
+                [ ( "email", Encode.string email )
+                , ( "password", Encode.string password )
                 ]
 
         decoder =
@@ -378,6 +386,5 @@ submit email password _ _ =
         request =
             Http.post url (Http.jsonBody json) decoder
     in
-        request
-            |> Http.send SubmitResponse
-
+    request
+        |> Http.send SubmitResponse

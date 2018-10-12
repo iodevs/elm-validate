@@ -274,17 +274,17 @@ modelForm model =
     , div []
         [ text "{ email ="
         , p [ class "model__el" ]
-            [ model.email |> rawValue |> text ]
+            [ model.email |> Debug.toString |> text ]
         ]
     , div []
         [ text ", password  ="
         , p [ class "model__el" ]
-            [ model.password |> rawValue |> text ]
+            [ model.password |> Debug.toString |> text ]
         ]
     , div []
         [ text ", confirmPassword  ="
         , p [ class "model__el" ]
-            [ model.confirmPassword |> rawValue |> text ]
+            [ model.confirmPassword |> Debug.toString |> text ]
         ]
     , div []
         [ text ", acceptPolicy  ="

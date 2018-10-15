@@ -1,4 +1,4 @@
-module Main exposing (Model, Msg(..), applyValidity, body, confirmPasswordValidation, emailValidation, errorLabel, footer, header, initModel, main, modelForm, passwordValidation, renderStatus, submit, submitIfValid, update, validateModel, view)
+module Main exposing (main)
 
 import Browser
 import Html exposing (..)

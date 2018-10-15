@@ -3,10 +3,10 @@
 .SUFFIXES: .elm .js
 
 build:
-	elm make --warn example/Main.elm --output=example/main.js
+	$(MAKE) -C example build
 
 
-gh-pages:
+gh-pages: build
 	git branch -D gh-pages 2>/dev/null || true
 	git branch -D draft 2>/dev/null || true
 	git push origin :gh-pages

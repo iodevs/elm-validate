@@ -1,5 +1,5 @@
 # elm-validate
-This library helps with validation of input forms and it's based on Enrico Buonanno lessons on [egghead.io](https://egghead.io/courses/form-validation-in-elm).
+This library helps with validation of input forms and it's based on Enrico Buonanno lessons on [egghead.io](https://egghead.io/courses/form-validation-in-elm/).
 
 Install package usually a way:
 ```
@@ -9,7 +9,7 @@ elm install iodevs/elm-validate
 
 ## Usage:
 * see `example` directory in this repository
-* or as live [demo](https://iodevs.github.io/elm-validate)
+* or as live [demo](https://iodevs.github.io/elm-validate/)
 
 ## ChangeLog
 2018-10-12

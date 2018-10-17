@@ -90,7 +90,7 @@ withField creator acs (Transformer model form) =
         Ok mdl ->
             case validity (acs form) of
                 NotValidated ->
-                    Transformer (Err "Form is NotValidated!") form
+                    Transformer (Err "Form is not validated!") form
 
                 Invalid _ ->
                     Transformer (Err "Form is invalid!") form

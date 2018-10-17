@@ -147,7 +147,7 @@ withField creator acs (Transformer model form) =
 
     -- Ok { planet = Earth, a = 1, b = 0.3 }
     -- for form with Mars we get:
-    --      Err "Form is NotValidated!",
+    --      Err "Form is not validated!",
     -- because validity of initial value b is NotValidated.
 
 -}

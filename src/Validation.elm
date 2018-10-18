@@ -1,5 +1,5 @@
 module Validation exposing
-    ( Field, Validity(..), Event(..), SubmissionStatus(..), OptionalField, Validator, ErrorMessage
+    ( Field(..), Validity(..), Event(..), SubmissionStatus(..), OptionalField, Validator, ErrorMessage
     , extractError, field, preValidatedField, validate, validity, rawValue, optional
     , applyValidity, composite
     )

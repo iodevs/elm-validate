@@ -1,7 +1,7 @@
 module TransformationTests exposing (suite)
 
 import Expect
-import Fuzz exposing (floatRange, int, intRange, string)
+import Fuzz exposing (float, floatRange, int, intRange, string)
 import Test exposing (..)
 import Transformation exposing (toModel, withField, withoutField)
 import Validation exposing (Field, preValidatedField)
@@ -10,41 +10,45 @@ import Validation exposing (Field, preValidatedField)
 suite : Test
 suite =
     describe "The Transformation module"
-        [ describe "transforms form to model with correct inputs"
-            [ fuzz3 (intRange 1 100) (floatRange 0.1 99.9) string "should return 'Ok model'" <|
+        [ describe "transforms form to model"
+            [ fuzz3 int float string "should return 'Result String Model'" <|
                 \num real str ->
-                    Form
-                        (preValidatedField String.fromInt num)
-                        (preValidatedField String.fromFloat real)
-                        (preValidatedField identity str)
-                        (C str)
-                        |> toModel
-                            Model
-                            (withField condIntRange .a
-                                >> withField condFloatRange .b
-                                >> withField (\s -> Result.Ok (C s)) .c
-                                >> withoutField Ok .d
-                            )
-                        |> Expect.equal (Ok { a = A num, b = B real, c = C str, d = C str })
-            ]
-        , describe "transforms form to model with incorrect inputs"
-            [ fuzz3 (intRange -100 0) (floatRange -100 0) string "should return 'Err err'" <|
-                \num real str ->
-                    Form
-                        (preValidatedField String.fromInt num)
-                        (preValidatedField String.fromFloat real)
-                        (preValidatedField identity str)
-                        (C str)
-                        |> toModel
-                            Model
-                            (withField condIntRange .a
-                                >> withField condFloatRange .b
-                                >> withField condString .c
-                                >> withoutField Ok .d
-                            )
-                        |> expectErr
+                    expectedModel num real str
             ]
         ]
+
+
+expectedModel : Int -> Float -> String -> Expect.Expectation
+expectedModel a b c =
+    let
+        form =
+            Form
+                (preValidatedField String.fromInt a)
+                (preValidatedField String.fromFloat b)
+                (preValidatedField identity c)
+                (C c)
+    in
+    if 0 < a && 0 < b && b < 100 then
+        form
+            |> toModel
+                Model
+                (withField condIntRange .a
+                    >> withField condFloatRange .b
+                    >> withField (\s -> Result.Ok (C s)) .c
+                    >> withoutField Ok .d
+                )
+            |> Expect.equal (Ok { a = A a, b = B b, c = C c, d = C c })
+
+    else
+        form
+            |> toModel
+                Model
+                (withField condIntRange .a
+                    >> withField condFloatRange .b
+                    >> withField condString .c
+                    >> withoutField Ok .d
+                )
+            |> expectErr
 
 
 expectErr : Result error value -> Expect.Expectation

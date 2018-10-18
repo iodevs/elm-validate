@@ -33,7 +33,7 @@ import Regex
 import Validation
     exposing
         ( ErrorMessage
-        , Field
+        , Field(..)
         , Validator
         , Validity(..)
         , composite

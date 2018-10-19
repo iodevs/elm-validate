@@ -1,7 +1,7 @@
 module TransformationTests exposing (suite)
 
 import Expect
-import Fuzz exposing (float, floatRange, int, intRange, string)
+import Fuzz exposing (constant, float, floatRange, int, intRange, oneOf, string)
 import Test exposing (..)
 import Transformation exposing (toModel, withField, withoutField)
 import Validation exposing (Field, preValidatedField)
@@ -11,54 +11,39 @@ suite : Test
 suite =
     describe "The Transformation module"
         [ describe "transforms form to model"
-            [ fuzz3 int float string "should return 'Result String Model'" <|
+            [ fuzz3 int float (oneOf [ string, constant "test" ]) "should return 'Result String Model'" <|
                 \num real str ->
-                    expectedModel num real str
+                    let
+                        form =
+                            Form
+                                (preValidatedField String.fromInt num)
+                                (preValidatedField String.fromFloat real)
+                                (preValidatedField identity str)
+                                (C str)
+
+                        result =
+                            form
+                                |> toModel
+                                    Model
+                                    (withField condIntRange .a
+                                        >> withField condFloatRange .b
+                                        >> withField condString .c
+                                        >> withoutField Ok .d
+                                    )
+                    in
+                    Expect.equal (expectedModel num real str str) result
             ]
         ]
 
 
-expectedModel : Int -> Float -> String -> Expect.Expectation
-expectedModel a b c =
-    let
-        form =
-            Form
-                (preValidatedField String.fromInt a)
-                (preValidatedField String.fromFloat b)
-                (preValidatedField identity c)
-                (C c)
-    in
-    if 0 < a && 0 < b && b < 100 then
-        form
-            |> toModel
-                Model
-                (withField condIntRange .a
-                    >> withField condFloatRange .b
-                    >> withField (\s -> Result.Ok (C s)) .c
-                    >> withoutField Ok .d
-                )
-            |> Expect.equal (Ok { a = A a, b = B b, c = C c, d = C c })
-
-    else
-        form
-            |> toModel
-                Model
-                (withField condIntRange .a
-                    >> withField condFloatRange .b
-                    >> withField condString .c
-                    >> withoutField Ok .d
-                )
-            |> expectErr
-
-
-expectErr : Result error value -> Expect.Expectation
-expectErr result =
-    case result of
-        Ok okVal ->
-            Expect.fail ("Expected an Err but got " ++ Debug.toString result)
-
-        Err _ ->
-            Expect.pass
+expectedModel : Int -> Float -> String -> String -> Result String Model
+expectedModel a b c d =
+    Result.map4
+        Model
+        (condIntRange a)
+        (condFloatRange b)
+        (condString c)
+        (Ok (C d))
 
 
 type A

@@ -137,7 +137,7 @@ or for `Valid a` is `Ok value`.
     confirmPasswordValidation =
         isEqualTo pass "The passwords don't match."
 
-    confirmPasswordValidation "password*" -- Ok password*
+    confirmPasswordValidation "password*" -- Ok "password*"
     confirmPasswordValidation "pasword*"  -- Err "The passwords don't match."
 
 -}

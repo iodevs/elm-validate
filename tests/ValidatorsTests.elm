@@ -22,7 +22,7 @@ suite =
                             Expect.equal v val
 
                         Err msg ->
-                            Expect.equal (Err "ERROR") result
+                            Expect.equal "ERROR" msg
             ]
         , describe "isPositiveFloat, which"
             [ fuzz float "should return positive float validator result" <|

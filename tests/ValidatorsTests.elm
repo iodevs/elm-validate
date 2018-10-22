@@ -21,7 +21,7 @@ suite =
                         Ok v ->
                             Expect.equal v val
 
-                        Err _ ->
+                        Err msg ->
                             Expect.equal (Err "ERROR") result
             ]
         , describe "isPositiveFloat, which"

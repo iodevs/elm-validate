@@ -19,7 +19,7 @@ suite =
                     in
                     case result of
                         Ok v ->
-                            Expect.equal (Ok v) result
+                            Expect.equal v val
 
                         Err _ ->
                             Expect.equal (Err "ERROR") result

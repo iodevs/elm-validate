@@ -241,13 +241,13 @@ isValidField isValidF =
 
 
 -- Internal
--- copied from elm-validate
+-- copied from rtfeldman/elm-validate
 
 
 validEmailPattern : Regex.Regex
 validEmailPattern =
     "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-        |> Regex.fromString
+        |> Regex.fromStringWith { caseInsensitive = True, multiline = False }
         |> Maybe.withDefault Regex.never
 
 

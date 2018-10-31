@@ -118,7 +118,7 @@ suite =
                 \_ ->
                     let
                         results =
-                            List.map check emailExamples
+                            List.map check emailTestData
 
                         check ( email, reason, valid_ ) =
                             if valid_ then
@@ -131,6 +131,27 @@ suite =
 
                                     Err _ ->
                                         Ok email
+                    in
+                    Expect.ok (List.foldl resultAnd (Result.Ok "ok") results)
+            ]
+        , describe "isUrl, which"
+            [ test "should validate url" <|
+                \_ ->
+                    let
+                        results =
+                            List.map check urlTestData
+
+                        check ( url, reason, valid_ ) =
+                            if valid_ then
+                                isUrl reason url
+
+                            else
+                                case isUrl "ERROR" url of
+                                    Ok _ ->
+                                        Err reason
+
+                                    Err _ ->
+                                        Ok url
                     in
                     Expect.ok (List.foldl resultAnd (Result.Ok "ok") results)
             ]
@@ -182,13 +203,13 @@ resultAnd res2 res1 =
 
 
 valid : String -> String -> ( String, String, Bool )
-valid validEmail reason =
-    ( validEmail, reason, True )
+valid validEntity reason =
+    ( validEntity, reason, True )
 
 
 invalid : String -> String -> ( String, String, Bool )
-invalid invalidEmail reason =
-    ( invalidEmail, reason, False )
+invalid invalidEntity reason =
+    ( invalidEntity, reason, False )
 
 
 
@@ -197,8 +218,8 @@ invalid invalidEmail reason =
 -- and subsequently modified
 
 
-emailExamples : List ( String, String, Bool )
-emailExamples =
+emailTestData : List ( String, String, Bool )
+emailTestData =
     [ --valid "\r\n (\r\n x \r\n ) \r\n first\r\n ( \r\n x\r\n ) \r\n .\r\n ( \r\n x) \r\n last \r\n (  x \r\n ) \r\n @example.com" "id0:"
       valid "_somename@example.com" "id1:"
     , valid "_Yosemite.Sam@example.com" "id2:"
@@ -521,4 +542,89 @@ emailExamples =
     , valid "valid@special.museum" "id268:"
 
     -- , invalid "x@x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456789.x23456" "id269: Domain exceeds 255 chars"
+    ]
+
+
+
+-- copied from https://mathiasbynens.be/demo/url-regex
+
+
+urlTestData : List ( String, String, Bool )
+urlTestData =
+    [ valid "ftp://foo.bar/baz" "id0:"
+    , valid "http://foo.com/blah_blah" "id1:"
+    , valid "http://foo.com/blah_blah/" "id2:"
+    , valid "http://foo.com/blah_blah_(wikipedia)" "id3:"
+    , valid "http://foo.com/blah_blah_(wikipedia)_(again)" "id4:"
+    , valid "http://www.example.com/wpstyle/?p=364" "id5:"
+    , valid "https://www.example.com/foo/?bar=baz&inga=42&quux" "id6:"
+    , valid "http://✪df.ws/123" "id7:"
+    , valid "http://userid:password@example.com:8080" "id8:"
+    , valid "http://userid:password@example.com:8080/" "id9:"
+    , valid "http://userid@example.com" "id10:"
+    , valid "http://userid@example.com/" "id11:"
+    , valid "http://userid@example.com:8080" "id12:"
+    , valid "http://userid@example.com:8080/" "id13:"
+    , valid "http://userid:password@example.com" "id14:"
+    , valid "http://userid:password@example.com/" "id15:"
+    , valid "http://142.42.1.1/" "id16:"
+    , valid "http://142.42.1.1:8080/" "id17:"
+    , valid "http://➡.ws/䨹" "id18:"
+    , valid "http://⌘.ws" "id19:"
+    , valid "http://⌘.ws/" "id20:"
+    , valid "http://foo.com/blah_(wikipedia)#cite-1" "id21:"
+    , valid "http://foo.com/blah_(wikipedia)_blah#cite-1" "id22:"
+    , valid "http://foo.com/unicode_(✪)_in_parens" "id23:"
+    , valid "http://foo.com/(something)?after=parens" "id24:"
+    , valid "http://☺.damowmow.com/" "id25:"
+    , valid "http://code.google.com/events/#&product=browser" "id26:"
+    , valid "http://j.mp" "id27:"
+    , valid "http://foo.bar/?q=Test%20URL-encoded%20stuff" "id28:"
+    , valid "http://مثال.إختبار" "id29:"
+    , valid "http://例子.测试" "id30:"
+    , valid "http://उदाहरण.परीक्षा" "id31:"
+    , valid "http://-.~_!$&'()*+,;=:%40:80%2f::::::@example.com" "id32:"
+    , valid "http://1337.net" "id33:"
+    , valid "http://a.b-c.de" "id34:"
+    , valid "http://223.255.255.254" "id35:"
+    , valid "http://a.b--c.de/" "id36:"
+    , invalid "http://" "id37:"
+    , invalid "http://." "id38:"
+    , invalid "http://.." "id38:"
+    , invalid "http://../" "id40:"
+    , invalid "http://?" "id41:"
+    , invalid "http://??" "id42:"
+    , invalid "http://??/" "id43:"
+    , invalid "http://#" "id44:"
+    , invalid "http://##" "id45:"
+    , invalid "http://##/" "id46:"
+    , invalid "http://foo.bar?q=Spaces should be encoded" "id47:"
+    , invalid "//" "id48:"
+    , invalid "//a" "id49:"
+    , invalid "///a" "id50:"
+    , invalid "///" "id51:"
+    , invalid "http:///a" "id52:"
+    , invalid "foo.com" "id53:"
+    , invalid "rdar://1234" "id54:"
+    , invalid "h://test" "id55:"
+    , invalid "http:// shouldfail.com" "id56:"
+    , invalid ":// should fail" "id57:"
+    , invalid "http://foo.bar/foo(bar)baz quux" "id58:"
+    , invalid "ftps://foo.bar/" "id59:"
+    , invalid "https://foo_bar.example.com/" "id60:"
+    , invalid "http://-error-.invalid/" "id61:"
+    , invalid "http://-a.b.co" "id62:"
+    , invalid "http://a.b-.co" "id63:"
+    , invalid "http://0.0.0.0" "id64:"
+    , invalid "http://10.1.1.0" "id65:"
+    , invalid "http://10.1.1.255" "id66:"
+    , invalid "http://224.1.1.1" "id67:"
+    , invalid "http://1.1.1.1.1" "id68:"
+    , invalid "http://123.123.123" "id69:"
+    , invalid "http://3628126748" "id70:"
+    , invalid "http://.www.foo.bar/" "id71:"
+    , invalid "http://www.foo.bar./" "id72:"
+    , invalid "http://.www.foo.bar./" "id73:"
+    , invalid "http://10.1.1.1" "id74:"
+    , invalid "http://10.1.1.254" "id75:"
     ]

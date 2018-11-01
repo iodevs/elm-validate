@@ -149,7 +149,6 @@ validity (Field _ validita) =
     intValue =
         field "50"
 
-
     -- Field "50" NotValidated
 
 -}
@@ -166,7 +165,6 @@ For `Field String String` use an identity function.
     intValue : Field String Int
     intValue =
         preValidatedField String.fromInt 50
-
 
     -- Field "50" (Valid 50)
 
@@ -224,10 +222,9 @@ applyValidity fa ff =
 
     emailValidation : Validator String String
     emailValidation =
-        isNotEmpty "An email is required."
-            and
-            isEmail
-            "Please ensure this is a valid email."
+        composite
+            (isNotEmpty "An email is required.")
+            (isEmail "Please ensure this is a valid email.")
 
 -}
 composite : Validator a b -> Validator b c -> Validator a c
@@ -269,9 +266,9 @@ extractError fieldExtErr =
         field ""
 
     validate
-        OnSubmit
-        (optional (isPositiveInt "The age has to be positive number."))
         age
+            |> optional (isPositiveInt "The age has to be positive number.")
+            |> OnSubmit
 
     -- Field "" (Valid Nothing)
 

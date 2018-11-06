@@ -39,6 +39,21 @@ suite =
                     else
                         Expect.equal (Err "ERROR") result
             ]
+        , describe "isRangeFloat, which"
+            [ fuzz float "should return float validator result" <|
+                \num ->
+                    let
+                        result =
+                            num
+                                |> String.fromFloat
+                                |> isRangeFloat -1.1 5.5 "ERROR"
+                    in
+                    if -1.1 <= num && num <= 5.5 then
+                        Expect.equal (Ok num) result
+
+                    else
+                        Expect.equal (Err "ERROR") result
+            ]
         , describe "isInt, which"
             [ fuzz (oneOf [ Fuzz.map String.fromInt int, string ]) "should return int validator result" <|
                 \val ->
@@ -63,6 +78,21 @@ suite =
                                 |> isPositiveInt "ERROR"
                     in
                     if 0 < num then
+                        Expect.equal (Ok num) result
+
+                    else
+                        Expect.equal (Err "ERROR") result
+            ]
+        , describe "isRangeInt, which"
+            [ fuzz int "should return int validator result" <|
+                \num ->
+                    let
+                        result =
+                            num
+                                |> String.fromInt
+                                |> isRangeInt -1 5 "ERROR"
+                    in
+                    if -1 <= num && num <= 5 then
                         Expect.equal (Ok num) result
 
                     else

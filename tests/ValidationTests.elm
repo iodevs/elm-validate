@@ -43,40 +43,36 @@ suite =
                     Expect.true "Expected True." (List.foldl (&&) True results)
             ]
         , describe "field, which"
-            [ fuzz2 float string "should return default settings of Field with `NotValidated` validity" <|
-                \rawFloat rawString ->
-                    let
-                        fields =
-                            ( ( field rawFloat, rawFloat, NotValidated )
-                            , ( field rawString, rawString, NotValidated )
-                            )
-
-                        ( rv1, rv2 ) =
-                            fields
-                                |> Tuple.mapFirst
-                                    (\( f, r, ex ) -> (rawValue f == r) && (validity f == ex))
-                                |> Tuple.mapSecond
-                                    (\( f, r, ex ) -> (rawValue f == r) && (validity f == ex))
-                    in
-                    Expect.true "Expected True." (List.foldl (&&) True [ rv1, rv2 ])
+            [ fuzz float "should return default `Float` settings of Field with `NotValidated` validity" <|
+                \raw ->
+                    Expect.all
+                        [ \field -> Expect.within (Expect.Absolute 0.000000001) (rawValue field) raw
+                        , \field -> Expect.equal (validity field) NotValidated
+                        ]
+                        (field raw)
+            , fuzz string "should return default `String` settings of Field with `NotValidated` validity" <|
+                \raw ->
+                    Expect.all
+                        [ \field -> Expect.equal (rawValue field) raw
+                        , \field -> Expect.equal (validity field) NotValidated
+                        ]
+                        (field raw)
             ]
         , describe "preValidatedField, which"
-            [ fuzz2 float string "should return default settings of Field with `Valid a` validity" <|
-                \rawFloat rawString ->
-                    let
-                        fields =
-                            ( ( preValidatedField String.fromFloat rawFloat, String.fromFloat rawFloat, Valid rawFloat )
-                            , ( preValidatedField identity rawString, rawString, Valid rawString )
-                            )
-
-                        ( rv1, rv2 ) =
-                            fields
-                                |> Tuple.mapFirst
-                                    (\( f, r, ex ) -> (rawValue f == r) && (validity f == ex))
-                                |> Tuple.mapSecond
-                                    (\( f, r, ex ) -> (rawValue f == r) && (validity f == ex))
-                    in
-                    Expect.true "Expected True." (List.foldl (&&) True [ rv1, rv2 ])
+            [ fuzz float "should return default settings of Field with `Valid Float` validity" <|
+                \raw ->
+                    Expect.all
+                        [ \field -> Expect.equal (rawValue field) (String.fromFloat raw)
+                        , \field -> Expect.equal (validity field) (Valid raw)
+                        ]
+                        (preValidatedField String.fromFloat raw)
+            , fuzz string "should return default settings of Field with `Valid String` validity" <|
+                \raw ->
+                    Expect.all
+                        [ \field -> Expect.equal (rawValue field) raw
+                        , \field -> Expect.equal (validity field) (Valid raw)
+                        ]
+                        (preValidatedField identity raw)
             ]
         , describe "validate, which"
             [ fuzz int "should validate Field with `Event`" <|

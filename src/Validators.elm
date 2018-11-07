@@ -3,7 +3,7 @@ module Validators exposing
     , isNotEmpty, isEmail, isUrl
     , isInList
     , isTrue, isEqualTo, isValidField
-    , isRangeFloat
+    , isRange, isRangeFloat
     )
 
 {-| This library provides a few functions for validating data.
@@ -91,17 +91,45 @@ than second.
     floatRange "6.1" -- Err "It is not in range!"
 
 -}
-isRangeFloat : Float -> Float -> ErrorMessage -> Validator String Float
-isRangeFloat f1 f2 err =
+isRange : Validator String comparable -> comparable -> comparable -> ErrorMessage -> Validator String comparable
+isRange validator_ f1 f2 err =
     let
-        isRange e fl =
+        isRange_ e fl =
             if f1 <= fl && fl <= f2 then
                 Ok fl
 
             else
                 Err e
     in
-    composite (isFloat err) (isRange err)
+    composite validator_ (isRange_ err)
+
+
+{-| Return an `Err errorMessage` if the given value isn't in float range
+(mathematically speaking it's closed interval), otherwise return `Ok value`.
+It contains also float validation of value. First float number has to be less
+than second.
+
+    import Validation exposing (ErrorMessage, Validator, isRangeFloat)
+
+    floatRange : Validator String Int
+    floatRange =
+        isRangeFloat 0 5.5 "It is not in range!"
+
+    floatRange "3.8" -- Ok 3.8
+    floatRange "6.1" -- Err "It is not in range!"
+
+-}
+isRangeFloat : Float -> Float -> ErrorMessage -> Validator String Float
+isRangeFloat f1 f2 err =
+    let
+        isRange_ e fl =
+            if f1 <= fl && fl <= f2 then
+                Ok fl
+
+            else
+                Err e
+    in
+    composite (isFloat err) (isRange_ err)
 
 
 {-| Return an `Err errorMessage` if the given value isn't int number, otherwise
@@ -156,14 +184,14 @@ than second.
 isRangeInt : Int -> Int -> ErrorMessage -> Validator String Int
 isRangeInt i1 i2 err =
     let
-        isRange e fl =
+        isRange_ e fl =
             if i1 <= fl && fl <= i2 then
                 Ok fl
 
             else
                 Err e
     in
-    composite (isInt err) (isRange err)
+    composite (isInt err) (isRange_ err)
 
 
 {-| Return an `Err errorMessage` if the given boolean value is false, otherwise

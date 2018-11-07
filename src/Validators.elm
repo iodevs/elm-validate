@@ -1,9 +1,8 @@
 module Validators exposing
-    ( isFloat, isInt
+    ( isFloat, isInt, isAtLeast, isAtMost, isGreaterThan, isLessThan, isRange
     , isNotEmpty, isEmail, isUrl
     , isInList
     , isTrue, isEqualTo, isValidField
-    , isPositive, isRange
     )
 
 {-| This library provides a few functions for validating data.
@@ -11,7 +10,7 @@ module Validators exposing
 
 # Numbers validation
 
-@docs isFloat, isPositiveFloat, isInt, isPositiveInt
+@docs isFloat, isInt, isAtLeast, isAtMost, isGreaterThan, isLessThan, isRange
 
 
 # Strings validation
@@ -42,7 +41,7 @@ import Validation
         )
 
 
-{-| Return an `Err errorMessage` if the given value isn't float number, otherwise
+{-| Returns an `Err errorMessage` if the given value isn't float number, otherwise
 return `Ok value`.
 
     import Validation exposing (Validator, ErrorMessage)
@@ -60,7 +59,7 @@ isFloat err =
     String.toFloat >> Result.fromMaybe err >> Result.mapError (always err)
 
 
-{-| Return an `Err errorMessage` if the given value isn't int number, otherwise
+{-| Returns an `Err errorMessage` if the given value isn't int number, otherwise
 return `Ok value`.
 
     import Validation exposing (Validator, ErrorMessage)
@@ -78,37 +77,88 @@ isInt err =
     String.toInt >> Result.fromMaybe err >> Result.mapError (always err)
 
 
-{-| Return an `Err errorMessage` if the given value isn't positive or
-if value isn't required a numeric type. Otherwise return `Ok value`.
+{-| Returns an `Err errorMessage2` or `Err errorMessage1` if the given value isn't
+less than defined value (defined by user) or if first validation failed.
+Otherwise return `Ok value`.
 
-    import Validation exposing (ErrorMessage, Validator, isPositive)
+    import Validation exposing (ErrorMessage, Validator, isLessThan)
 
-    isPositiveInt : Validator String Int
-    isPositiveInt =
-        isPositive (isInt "The value is not int number!") "The value is not positive!"
+    isLessThanInt : Validator String Int
+    isLessThanInt =
+        isLessThan (isInt "The value is not int number!") 5 "The value is not less than 5!"
 
-    isPositiveInt "3"   -- Ok 3
-    isPositiveInt "-5"  -- Err "The value is not positive!"
-    isPositiveInt "6.3" -- Err "The value is not int number!"
+    isLessThanInt "3"   -- Ok 3
+    isLessThanInt "6"   -- Err "The value is not less than 5!"
+    isLessThanInt "6.3" -- Err "The value is not int number!"
 
 -}
-isPositive : Validator String number -> ErrorMessage -> Validator String number
-isPositive validator_ err =
+isLessThan : Validator String comparable -> comparable -> ErrorMessage -> Validator String comparable
+isLessThan validator_ val err =
     let
-        isPositive_ e num =
-            if num > 0 then
+        isLessThan_ e num =
+            if num < val then
                 Ok num
 
             else
                 Err e
     in
-    composite validator_ (isPositive_ err)
+    composite validator_ (isLessThan_ err)
 
 
-{-| Return an `Err errorMessage` if the given value isn't in range
-(mathematically speaking it's closed interval) or if value isn't required
-a numeric type. Otherwise return `Ok value`. First float number has to be
-less than second.
+{-| Returns an `Err errorMessage2` or `Err errorMessage1` if the given value isn't
+less or equal to defined value (defined by user) or if first validation failed.
+Otherwise return `Ok value`.
+-}
+isAtMost : Validator String comparable -> comparable -> ErrorMessage -> Validator String comparable
+isAtMost validator_ val err =
+    let
+        isLessThan_ e num =
+            if num <= val then
+                Ok num
+
+            else
+                Err e
+    in
+    composite validator_ (isLessThan_ err)
+
+
+{-| Returns an `Err errorMessage2` or `Err errorMessage1` if the given value isn't
+greater than defined value (defined by user) or if first validation failed.
+Otherwise return `Ok value`.
+-}
+isGreaterThan : Validator String comparable -> comparable -> ErrorMessage -> Validator String comparable
+isGreaterThan validator_ val err =
+    let
+        isGreaterThan_ e num =
+            if val < num then
+                Ok num
+
+            else
+                Err e
+    in
+    composite validator_ (isGreaterThan_ err)
+
+
+{-| Returns an `Err errorMessage2` or `Err errorMessage1` if the given value isn't
+greater or equal to defined value (defined by user) or if first validation failed.
+Otherwise return `Ok value`.
+-}
+isAtLeast : Validator String comparable -> comparable -> ErrorMessage -> Validator String comparable
+isAtLeast validator_ val err =
+    let
+        isAtLeast_ e num =
+            if val <= num then
+                Ok num
+
+            else
+                Err e
+    in
+    composite validator_ (isAtLeast_ err)
+
+
+{-| Returns an `Err errorMessage2` or `Err errorMessage1` if the given value isn't
+in range (mathematically speaking it's closed interval) or if first validation failed.
+Otherwise return `Ok value`. First number has to be less than second.
 
     import Validation exposing (ErrorMessage, Validator, isRange)
 
@@ -134,7 +184,7 @@ isRange validator_ lowNum hightNum err =
     composite validator_ (isRange_ err)
 
 
-{-| Return an `Err errorMessage` if the given boolean value is false, otherwise
+{-| Returns an `Err errorMessage` if the given boolean value is false, otherwise
 return `Ok True`.
 -}
 isTrue : ErrorMessage -> Validator Bool Bool
@@ -148,7 +198,7 @@ isTrue err b =
 
 {-| Validate Field
 
-Return an `Err errorMessage` if the given value of `Field Valid a` isn't same as
+Returns an `Err errorMessage` if the given value of `Field Valid a` isn't same as
 validation argument, otherwise return `Ok validation argument` for others `Validity`
 or for `Valid a` is `Ok value`.
 
@@ -180,7 +230,7 @@ isEqualTo otherField err a2 =
             Ok a2
 
 
-{-| Return an `Err errorMessage` if the given string is empty, otherwise
+{-| Returns an `Err errorMessage` if the given string is empty, otherwise
 return `Ok value`.
 -}
 isNotEmpty : ErrorMessage -> Validator String String
@@ -192,7 +242,7 @@ isNotEmpty err value =
         Ok value
 
 
-{-| Return an `Err errorMessage` if the given string isn't correct an email address,
+{-| Returns an `Err errorMessage` if the given string isn't correct an email address,
 otherwise return `Ok value`.
 -}
 isEmail : ErrorMessage -> Validator String String
@@ -204,7 +254,7 @@ isEmail err value =
         Err err
 
 
-{-| Return an `Err errorMessage` if the given string isn't correct an url path,
+{-| Returns an `Err errorMessage` if the given string isn't correct an url path,
 otherwise return `Ok value`.
 -}
 isUrl : ErrorMessage -> Validator String String
@@ -216,7 +266,7 @@ isUrl err value =
         Err err
 
 
-{-| Return an `Err errorMessage` if the given value isn't in list, otherwise
+{-| Returns an `Err errorMessage` if the given value isn't in list, otherwise
 return `Ok value`.
 
     import Validation exposing (Validator, ErrorMessage)
@@ -242,7 +292,7 @@ isInList err tpl =
         Err err
 
 
-{-| Return false if `Field` hasn't validity `Valid a`, otherwise
+{-| Returns false if `Field` hasn't validity `Valid a`, otherwise
 return true.
 
     import Validation exposing (Field, field, preValidatedField)

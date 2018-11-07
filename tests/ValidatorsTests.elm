@@ -42,18 +42,78 @@ suite =
                         Err msg ->
                             Expect.equal "ERROR" msg
             ]
-        , describe "isPositive, which"
+        , describe "isLessThan, which"
             [ fuzz (oneOf [ Fuzz.map String.fromInt int, string ])
-                "should check if given value is positive number"
+                "should check if given value is less than given number"
               <|
                 \val ->
                     let
                         result =
-                            isPositive (isInt "ERROR1") "ERROR2" val
+                            isLessThan (isInt "ERROR1") 5 "ERROR2" val
                     in
                     case String.toInt val of
                         Just v ->
-                            if 0 < v then
+                            if v < 5 then
+                                Expect.equal (Ok v) result
+
+                            else
+                                Expect.equal (Err "ERROR2") result
+
+                        Nothing ->
+                            Expect.equal (Err "ERROR1") result
+            ]
+        , describe "isAtMost, which"
+            [ fuzz (oneOf [ Fuzz.map String.fromInt int, string ])
+                "should check if given value is less or equal to given number"
+              <|
+                \val ->
+                    let
+                        result =
+                            isAtMost (isInt "ERROR1") 5 "ERROR2" val
+                    in
+                    case String.toInt val of
+                        Just v ->
+                            if v <= 5 then
+                                Expect.equal (Ok v) result
+
+                            else
+                                Expect.equal (Err "ERROR2") result
+
+                        Nothing ->
+                            Expect.equal (Err "ERROR1") result
+            ]
+        , describe "isGreaterThan, which"
+            [ fuzz (oneOf [ Fuzz.map String.fromInt int, string ])
+                "should check if given value is greater than given number"
+              <|
+                \val ->
+                    let
+                        result =
+                            isGreaterThan (isInt "ERROR1") 5 "ERROR2" val
+                    in
+                    case String.toInt val of
+                        Just v ->
+                            if v > 5 then
+                                Expect.equal (Ok v) result
+
+                            else
+                                Expect.equal (Err "ERROR2") result
+
+                        Nothing ->
+                            Expect.equal (Err "ERROR1") result
+            ]
+        , describe "isAtLeast, which"
+            [ fuzz (oneOf [ Fuzz.map String.fromInt int, string ])
+                "should check if given value is greater or equal to given number"
+              <|
+                \val ->
+                    let
+                        result =
+                            isAtLeast (isInt "ERROR1") 5 "ERROR2" val
+                    in
+                    case String.toInt val of
+                        Just v ->
+                            if 5 <= v then
                                 Expect.equal (Ok v) result
 
                             else

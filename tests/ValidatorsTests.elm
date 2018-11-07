@@ -11,7 +11,9 @@ suite : Test
 suite =
     describe "is now verifying the function"
         [ describe "isFloat, which"
-            [ fuzz (oneOf [ Fuzz.map String.fromFloat float, string ]) "should return float validator result" <|
+            [ fuzz (oneOf [ Fuzz.map String.fromFloat float, string ])
+                "should check if given value is float type"
+              <|
                 \val ->
                     let
                         result =
@@ -24,38 +26,10 @@ suite =
                         Err msg ->
                             Expect.equal "ERROR" msg
             ]
-        , describe "isPositiveFloat, which"
-            [ fuzz float "should return positive float validator result" <|
-                \num ->
-                    let
-                        result =
-                            num
-                                |> String.fromFloat
-                                |> isPositiveFloat "ERROR"
-                    in
-                    if 0 < num then
-                        Expect.equal (Ok num) result
-
-                    else
-                        Expect.equal (Err "ERROR") result
-            ]
-        , describe "isRangeFloat, which"
-            [ fuzz float "should return float validator result" <|
-                \num ->
-                    let
-                        result =
-                            num
-                                |> String.fromFloat
-                                |> isRangeFloat -1.1 5.5 "ERROR"
-                    in
-                    if -1.1 <= num && num <= 5.5 then
-                        Expect.equal (Ok num) result
-
-                    else
-                        Expect.equal (Err "ERROR") result
-            ]
         , describe "isInt, which"
-            [ fuzz (oneOf [ Fuzz.map String.fromInt int, string ]) "should return int validator result" <|
+            [ fuzz (oneOf [ Fuzz.map String.fromInt int, string ])
+                "should check if given value is int type"
+              <|
                 \val ->
                     let
                         result =
@@ -68,38 +42,48 @@ suite =
                         Err msg ->
                             Expect.equal "ERROR" msg
             ]
-        , describe "isPositiveInt, which"
-            [ fuzz int "should return positive int validator result" <|
-                \num ->
+        , describe "isPositive, which"
+            [ fuzz (oneOf [ Fuzz.map String.fromInt int, string ])
+                "should check if given value is positive number"
+              <|
+                \val ->
                     let
                         result =
-                            num
-                                |> String.fromInt
-                                |> isPositiveInt "ERROR"
+                            isPositive (isInt "ERROR1") "ERROR2" val
                     in
-                    if 0 < num then
-                        Expect.equal (Ok num) result
+                    case String.toInt val of
+                        Just v ->
+                            if 0 < v then
+                                Expect.equal (Ok v) result
 
-                    else
-                        Expect.equal (Err "ERROR") result
+                            else
+                                Expect.equal (Err "ERROR2") result
+
+                        Nothing ->
+                            Expect.equal (Err "ERROR1") result
             ]
-        , describe "isRangeInt, which"
-            [ fuzz int "should return int validator result" <|
-                \num ->
+        , describe "isRange, which"
+            [ fuzz (oneOf [ Fuzz.map String.fromFloat float, string ])
+                "should check if given value is given range"
+              <|
+                \val ->
                     let
                         result =
-                            num
-                                |> String.fromInt
-                                |> isRangeInt -1 5 "ERROR"
+                            isRange (isFloat "ERROR1") -1.1 5.5 "ERROR2" val
                     in
-                    if -1 <= num && num <= 5 then
-                        Expect.equal (Ok num) result
+                    case String.toFloat val of
+                        Just v ->
+                            if -1.1 <= v && v <= 5.5 then
+                                Expect.equal (Ok v) result
 
-                    else
-                        Expect.equal (Err "ERROR") result
+                            else
+                                Expect.equal (Err "ERROR2") result
+
+                        Nothing ->
+                            Expect.equal (Err "ERROR1") result
             ]
         , describe "isTrue, which"
-            [ fuzz bool "should return true validator result" <|
+            [ fuzz bool "should check if given value is true or false" <|
                 \bool ->
                     let
                         result =
@@ -112,7 +96,7 @@ suite =
                         Expect.equal (Err "ERROR") result
             ]
         , describe "isEqualTo, which"
-            [ test "should return validator result" <|
+            [ test "should check if given two values are equal" <|
                 \_ ->
                     let
                         fields =
@@ -131,7 +115,7 @@ suite =
                     Expect.true "Expected True." (List.foldl (&&) True results)
             ]
         , describe "isNotEmpty, which"
-            [ fuzz string "should check if string is nonempty" <|
+            [ fuzz string "should check if given string is nonempty" <|
                 \str ->
                     let
                         result =
@@ -144,7 +128,7 @@ suite =
                         Expect.equal (Ok str) result
             ]
         , describe "isEmail, which"
-            [ test "should validate email address" <|
+            [ test "should check an email address" <|
                 \_ ->
                     let
                         results =
@@ -165,7 +149,7 @@ suite =
                     Expect.ok (List.foldl resultAnd (Result.Ok "ok") results)
             ]
         , describe "isUrl, which"
-            [ test "should validate url" <|
+            [ test "should check an url" <|
                 \_ ->
                     let
                         results =
@@ -186,7 +170,7 @@ suite =
                     Expect.ok (List.foldl resultAnd (Result.Ok "ok") results)
             ]
         , describe "isInList, which"
-            [ fuzz2 float (list float) "should return validator result" <|
+            [ fuzz2 float (list float) "should check if given value is in list" <|
                 \val list ->
                     let
                         result =
@@ -199,7 +183,7 @@ suite =
                         Expect.equal (Err "ERROR") result
             ]
         , describe "isValidField, which"
-            [ test "should return bool" <|
+            [ test "should check if given Field has Valid value" <|
                 \_ ->
                     let
                         fields =

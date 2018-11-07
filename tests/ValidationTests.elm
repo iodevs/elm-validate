@@ -89,7 +89,7 @@ suite =
                                 Field raw (Invalid "ERROR")
 
                         validator =
-                            isPositiveInt "ERROR"
+                            isPositive (isInt "ERR") "ERROR"
 
                         eventVal =
                             [ ( OnSubmit, Field raw NotValidated, expField )
@@ -172,7 +172,7 @@ suite =
                 \raw ->
                     let
                         result =
-                            optional (isPositiveInt "ERROR") raw
+                            optional (isPositive (isInt "ERR") "ERROR") raw
                     in
                     case result of
                         Ok val ->

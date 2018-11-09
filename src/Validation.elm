@@ -1,6 +1,6 @@
 module Validation exposing
     ( Field(..), Validity(..), Event(..), SubmissionStatus(..), OptionalField, Validator, ErrorMessage
-    , extractError, field, preValidatedField, validate, validity, rawValue, optional
+    , extractError, field, preValidatedField, validate, validity, rawValue, optional, invalidate
     , applyValidity, composite
     )
 
@@ -14,7 +14,7 @@ module Validation exposing
 
 # Helpers
 
-@docs extractError, field, preValidatedField, validate, validity, rawValue, optional
+@docs extractError, field, preValidatedField, validate, validity, rawValue, optional, invalidate
 
 
 # Higher-Order Helpers
@@ -172,6 +172,23 @@ For `Field String String` use an identity function.
 preValidatedField : (val -> String) -> val -> Field String val
 preValidatedField fn value =
     Field (fn value) (Valid value)
+
+
+{-| Default setting of Field with `Valid a` validity.
+For `Field String String` use an identity function.
+
+    import Validation exposing (Field, invalidate, preValidatedField)
+
+    intValue : Field String Int
+    intValue =
+        preValidatedField String.fromInt 50
+
+    invalidate "Bad value" intValue  -- Field "50" (Invalid "Bad value")
+
+-}
+invalidate : String -> Field raw a -> Field raw a
+invalidate str (Field value _) =
+    Field value (Invalid str)
 
 
 {-| Run validation on Field with `Event`.

@@ -11,11 +11,18 @@ elm install iodevs/elm-validate
 * see `example` directory in this repository
 * or as live [demo](https://iodevs.github.io/elm-validate/)
 
+
 ## ChangeLog
+2018-11-09
+* deleted `isPositiveFloat, isPositiveInt` functions and added `isAtLeast, isAtMost, isGreaterThan, isLessThan, isRange` functions to Validators
+* added `invalidate` function to Validation
+
+
 2018-10-12
 * `Validation.preValidatedField : (val -> String) -> val -> Field String val` (not `preValidatedField : val -> Field String val` anymore)
 * `(|:)` deleted and replaced `applyValidity`
 * `(>&&)` changed to `composite`
+
 
 2018-02-12
 

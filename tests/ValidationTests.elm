@@ -74,6 +74,25 @@ suite =
                         ]
                         (preValidatedField identity raw)
             ]
+        , describe "invalidate, which"
+            [ fuzz float "should return Field with `Invalid String` validity" <|
+                \raw ->
+                    let
+                        fields =
+                            [ Field raw NotValidated
+                            , Field raw (Valid raw)
+                            , Field raw (Invalid "invalid")
+                            ]
+
+                        expected =
+                            Field raw (Invalid "ERROR")
+
+                        results =
+                            fields
+                                |> List.map (\f -> invalidate "ERROR" f == expected)
+                    in
+                    Expect.true "Expected True." (List.foldl (&&) True results)
+            ]
         , describe "validate, which"
             [ fuzz int "should validate Field with `Event`" <|
                 \val ->

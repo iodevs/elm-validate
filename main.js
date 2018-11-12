@@ -4725,6 +4725,7 @@ var author$project$Main$confirmPasswordValidation = function (password) {
 		author$project$Validators$isNotEmpty('Please enter a password.'),
 		A2(author$project$Validators$isEqualTo, password, 'The passwords don\'t match.'));
 };
+var elm$core$Basics$True = {$: 'True'};
 var elm$core$Basics$apR = F2(
 	function (x, f) {
 		return f(x);
@@ -4747,17 +4748,14 @@ var elm$regex$Regex$Match = F4(
 		return {index: index, match: match, number: number, submatches: submatches};
 	});
 var elm$regex$Regex$fromStringWith = _Regex_fromStringWith;
-var elm$regex$Regex$fromString = function (string) {
-	return A2(
-		elm$regex$Regex$fromStringWith,
-		{caseInsensitive: false, multiline: false},
-		string);
-};
 var elm$regex$Regex$never = _Regex_never;
 var author$project$Validators$validEmailPattern = A2(
 	elm$core$Maybe$withDefault,
 	elm$regex$Regex$never,
-	elm$regex$Regex$fromString('^[a-zA-Z0-9.!#$%&\'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'));
+	A2(
+		elm$regex$Regex$fromStringWith,
+		{caseInsensitive: true, multiline: false},
+		'^[a-zA-Z0-9.!#$%&\'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'));
 var elm$regex$Regex$contains = _Regex_contains;
 var author$project$Validators$isEmail = F2(
 	function (err, value) {
@@ -4945,7 +4943,6 @@ var elm$core$Array$initialize = F2(
 			return A5(elm$core$Array$initializeHelp, fn, initialFromIndex, len, _List_Nil, tail);
 		}
 	});
-var elm$core$Basics$True = {$: 'True'};
 var elm$core$Result$isOk = function (result) {
 	if (result.$ === 'Ok') {
 		return true;

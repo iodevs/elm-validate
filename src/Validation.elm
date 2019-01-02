@@ -4,7 +4,7 @@ module Validation exposing
     , applyValidity, composite
     )
 
-{-| This library helps with validation of input forms.
+{-| This module helps with validation of input forms.
 
 
 # Definition
@@ -40,7 +40,7 @@ type Field raw a
 {-| This type defines three state of Field:
 
   - `NotValidated` values e.g. in input from, which have not validated yet.
-  - `Valid a` values that they are correct.
+  - `Valid a` values ​​that have been validated and are correct.
   - `Invalid String` and state for incorrect input values.
 
 -}

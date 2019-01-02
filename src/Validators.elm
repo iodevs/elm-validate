@@ -5,7 +5,7 @@ module Validators exposing
     , isTrue, isEqualTo, isValidField
     )
 
-{-| This library provides a few functions for validating data.
+{-| This module provides a few functions for validating data.
 
 
 # Numbers validation

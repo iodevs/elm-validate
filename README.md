@@ -172,8 +172,8 @@ which will be used in init part and somewhere else in your app.
 
 
 ## ChangeLog
-see [CHANGELOG](https://github.com/iodevs/elm-validate/blob/master/CHANGELOG)
+see [CHANGELOG](CHANGELOG.md)
 
 
 ## License
-[![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)](https://github.com/iodevs/elm-validate/blob/master/LICENSE)
+[![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)](LICENSE)

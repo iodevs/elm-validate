@@ -146,28 +146,29 @@ SendEmplyeeToServer employeeForm ->
                 )
             |> Result.withDefault
                 ( model, Cmd.none )
-```
 
-where message `SendEmplyeeToServer` will be called by clicking "check" button at the employee form. Similarly for `GetEmplyeeFromServer` message somewhere else in your app:
+GotEmplyeeFromServer (Ok data) ->
+    ( { model
+        | form = employeeToForm data
+      }
+    , Cmd.none
+    )
 
-```elm
-GetEmplyeeFromServer (Ok data) ->
-    data
-        |> Decode.decodeValue decodeEmployee
-        |> Result.map
-            (\initData ->
-                ( { model
-                    | form = employeeToForm initData
-                  }
-                , Cmd.none
-                )
-            )
-        |> Result.withDefault
-            ( model, Cmd.none )
-
-GetEmplyeeFromServer (Err err) ->
+GotEmplyeeFromServer (Err err) ->
     ...
 ```
+
+where message `SendEmplyeeToServer` will be called by clicking "check" button at the employee form. Similarly for getting data you'll need `GotEmplyeeFromServer` message. This message is binded with command:
+
+```elm
+getEmplyeeFromServer : Cmd Msg
+getEmplyeeFromServer =
+    Http.get
+        { url = ...
+        , expect = Http.expectJson GotEmplyeeFromServer (Decode.decodeValue decodeEmployee)
+        }
+```
+which will be used in init part and somewhere else in your app.
 
 
 ## ChangeLog

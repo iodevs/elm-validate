@@ -14,7 +14,7 @@ elm install iodevs/elm-validate
 
 Let say, you have an employee form by which you can add new an employee to your system. You want to save his a photo, a name, an email and an age. The form responds to record `EmployeeForm` where for each input form is defined type `Fields`.
 
-![](docs/employee-example.png)
+![](https://github.com/iodevs/elm-validate/raw/master/docs/employee-example.png)
 
 For sending these data to server you'll need to define a record `Employee`:
 
@@ -172,8 +172,8 @@ which will be used in init part and somewhere else in your app.
 
 
 ## ChangeLog
-see [CHANGELOG](CHANGELOG.md)
+see [CHANGELOG](https://github.com/iodevs/elm-validate/blob/master/CHANGELOG.md)
 
 
 ## License
-[![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)](LICENSE)
+[![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)](https://github.com/iodevs/elm-validate/blob/master/LICENSE)

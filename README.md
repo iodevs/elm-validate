@@ -16,7 +16,7 @@ Let say, you have an employee form by which you can add new an employee to your 
 
 ![](https://github.com/iodevs/elm-validate/raw/master/docs/employee-example.png)
 
-For sending these data to server you'll need to define a record `Employee`:
+For sending/fetching these data to/from server you'll need to define a record `Employee`:
 
 ```elm
 type alias Employee =

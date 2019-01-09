@@ -2,15 +2,15 @@
 This library helps with a validation of input forms and it's based on Enrico Buonanno lessons on [egghead.io](https://egghead.io/courses/form-validation-in-elm/).
 
 ## Install
-* usual a way:
 ```
 elm install iodevs/elm-validate
 ```
 
 
 ## Usage:
-* for example as a validation of register / login /... form, see [example](https://github.com/iodevs/elm-validate/tree/master/example) directory in this repository or a live [demo](https://iodevs.github.io/elm-validate/)
-* or as a validation of input forms for your applications, see below very simplified an example.
+For example as a validation of
+* the register / login /... form, see [example](https://github.com/iodevs/elm-validate/tree/master/example) directory in this repository or a live [demo](https://iodevs.github.io/elm-validate/)
+* the input forms for your applications, see below very simplified an example.
 
 Let say, you have an employee form by which you can add new an employee to your system. You want to save his a photo, a name, an email and an age. The form responds to record `EmployeeForm` where for each input form is defined type `Fields`.
 
@@ -110,13 +110,14 @@ nameValidation =
 
 emailValidation : Validator String String
 emailValidation =
-    composite
-        (isNotEmpty "Email of employee is required.")
-        (isEmail "Incorrect email.")
+    (isNotEmpty "Email of employee is required.")
+        |> composite (isEmail "Incorrect email.")
+
 
 ageValidation : Validator String Int
 ageValidation =
-    isRange (isInt "Age must be integer number!") 10 100 "You cannot employ a person younger than 10 year old or elder 100!"
+    "You cannot employ a person younger than 10 year old or elder 100!"
+        |> isRange (isInt "Age must be integer number!") 10 100
 ```
 
 Of course, also these validations you'll use that same a way as in previous Register form example. A relevant parts (messages `InputEmail`, `BlurEmail`, etc.) are same or similar and omitted here.
@@ -124,7 +125,7 @@ Of course, also these validations you'll use that same a way as in previous Regi
 Finally, somewhere inside `update` function will be:
 
 ```elm
-SendEmplyeeToServer employeeForm ->
+SendEmployeeToServer employeeForm ->
     let
         form =
             employeeForm
@@ -147,25 +148,25 @@ SendEmplyeeToServer employeeForm ->
             |> Result.withDefault
                 ( model, Cmd.none )
 
-GotEmplyeeFromServer (Ok data) ->
+GotEmployeeFromServer (Ok data) ->
     ( { model
         | form = employeeToForm data
       }
     , Cmd.none
     )
 
-GotEmplyeeFromServer (Err err) ->
+GotEmployeeFromServer (Err err) ->
     ...
 ```
 
-where message `SendEmplyeeToServer` will be called by clicking "check" button at the employee form. Similarly for getting data you'll need `GotEmplyeeFromServer` message. This message is binded with command:
+where message `SendEmployeeToServer` will be called by clicking "check" button at the employee form. Similarly for getting data you'll need `GotEmployeeFromServer` message. This message is binded with command:
 
 ```elm
-getEmplyeeFromServer : Cmd Msg
-getEmplyeeFromServer =
+getEmployeeFromServer : Cmd Msg
+getEmployeeFromServer =
     Http.get
         { url = ...
-        , expect = Http.expectJson GotEmplyeeFromServer (Decode.decodeValue decodeEmployee)
+        , expect = Http.expectJson GotEmployeeFromServer (Decode.decodeValue decodeEmployee)
         }
 ```
 which will be used in init part and somewhere else in your app.
@@ -176,4 +177,4 @@ see [CHANGELOG](https://github.com/iodevs/elm-validate/blob/master/CHANGELOG.md)
 
 
 ## License
-[![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)](https://github.com/iodevs/elm-validate/blob/master/LICENSE)
+[![BSD](https://img.shields.io/badge/license-BSD-blue.svg)](https://github.com/iodevs/elm-validate/blob/master/LICENSE)

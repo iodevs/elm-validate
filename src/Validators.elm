@@ -81,7 +81,8 @@ isInt err =
 less than defined value (defined by user) or if first validation failed.
 Otherwise return `Ok value`.
 
-    import Validation exposing (ErrorMessage, Validator, isLessThan)
+    import Validation exposing (ErrorMessage, Validator)
+    import Validators exposing (isLessThan)
 
     isLessThanInt : Validator String Int
     isLessThanInt =
@@ -160,7 +161,8 @@ isAtLeast validator_ val err =
 in range (mathematically speaking it's closed interval) or if first validation failed.
 Otherwise return `Ok value`. First number has to be less than second.
 
-    import Validation exposing (ErrorMessage, Validator, isRange)
+    import Validation exposing (ErrorMessage, Validator)
+    import Validators exposing (isFloat, isRange)
 
     floatRange : Validator String Float
     floatRange =
